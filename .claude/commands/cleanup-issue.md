@@ -42,6 +42,52 @@ gh issue view {이슈번호} --json state,title
 
 이슈가 OPEN 상태이면 경고 출력 후 사용자 확인.
 
+### 3.5. 프로젝트 보드 → Done 이동
+
+이슈를 프로젝트 보드에서 "Done" 상태로 이동한다:
+
+```bash
+# 1. 이슈의 프로젝트 아이템 ID 조회
+ITEM_ID=$(gh api graphql -f query='
+  query($owner:String!, $repo:String!, $number:Int!) {
+    repository(owner:$owner, name:$repo) {
+      issue(number:$number) {
+        projectItems(first:10) { nodes { id project { id title } } }
+      }
+    }
+  }' -f owner="{OWNER}" -f repo="{REPO}" -F number={이슈번호} \
+  --jq '.data.repository.issue.projectItems.nodes[0].id')
+
+PROJECT_ID=$(# 위 쿼리에서 project.id 추출)
+
+# 2. Status 필드 ID 조회
+FIELD_ID=$(gh api graphql -f query='
+  query($projectId:ID!) {
+    node(id:$projectId) {
+      ... on ProjectV2 {
+        fields(first:20) {
+          nodes { ... on ProjectV2SingleSelectField { id name options { id name } } }
+        }
+      }
+    }
+  }' -f projectId="$PROJECT_ID" \
+  --jq '.data.node.fields.nodes[] | select(.name=="Status") | .id')
+
+DONE_ID=$(# 위 쿼리에서 options[] | select(.name=="Done") | .id)
+
+# 3. Done으로 이동
+gh api graphql -f query='
+  mutation($projectId:ID!, $itemId:ID!, $fieldId:ID!, $optionId:String!) {
+    updateProjectV2ItemFieldValue(input:{
+      projectId:$projectId, itemId:$itemId, fieldId:$fieldId,
+      value:{singleSelectOptionId:$optionId}
+    }) { projectV2Item { id } }
+  }' -f projectId="$PROJECT_ID" -f itemId="$ITEM_ID" \
+     -f fieldId="$FIELD_ID" -f optionId="$DONE_ID"
+```
+
+실패 시 경고만 출력하고 계속 진행한다.
+
 ### 4. Worktree 삭제
 
 ```
