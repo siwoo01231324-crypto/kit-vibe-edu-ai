@@ -49,14 +49,14 @@ gh issue comment {이슈번호} --body "## 이슈 포기
 **날짜:** {오늘 날짜}"
 ```
 
-### 5.5. 프로젝트 보드 → Done 이동
+### 5.5. 프로젝트 보드 → Drop 이동
 
-이슈를 프로젝트 보드에서 "Done" 상태로 이동한다:
+이슈를 프로젝트 보드에서 "Drop" 상태로 이동한다:
 
 ```bash
 # cleanup-issue.md의 3.5단계와 동일한 GraphQL 쿼리 사용
 # 1. 이슈의 프로젝트 아이템 ID + PROJECT_ID 조회
-# 2. Status 필드에서 "Done" 옵션 ID 조회
+# 2. Status 필드에서 "Drop" 옵션 ID 조회
 # 3. updateProjectV2ItemFieldValue mutation 실행
 ```
 
