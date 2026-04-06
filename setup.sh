@@ -86,9 +86,8 @@ else
             # GraphQL로 Status 필드 옵션을 원하는 컬럼으로 교체
             echo "  🔧 Status 컬럼 설정 중 (Backlog/Ready/In Progress/In Review/Done)..."
             UPDATED_FIELD=$(gh api graphql -f query='
-              mutation($projectId: ID!, $fieldId: ID!) {
+              mutation($fieldId: ID!) {
                 updateProjectV2Field(input: {
-                  projectId: $projectId
                   fieldId: $fieldId
                   name: "Status"
                   singleSelectOptions: [
@@ -110,7 +109,7 @@ else
                   }
                 }
               }
-            ' -f projectId="$PROJECT_ID" -f fieldId="$FIELD_ID" 2>/dev/null)
+            ' -f fieldId="$FIELD_ID" 2>/dev/null)
 
             if [ -z "$UPDATED_FIELD" ]; then
               echo "  ⚠️  Status 컬럼 자동 설정 실패. GraphQL 권한을 확인하세요."
