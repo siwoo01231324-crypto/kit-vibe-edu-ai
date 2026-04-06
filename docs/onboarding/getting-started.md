@@ -92,14 +92,34 @@ my-project/
 
 칸반 자동화(`project-automation.yml`)가 동작하려면 GitHub Projects 보드와 연결이 필요합니다.
 
-### 5-1. 프로젝트 보드 생성
+### 5-1. 자동 설정 (권장)
 
-GitHub 웹 UI에서:
-1. 레포 → **Projects** 탭 → **New project**
-2. **Board** 템플릿 선택
-3. 컬럼 생성: `Backlog` / `Ready` / `In Progress` / `In Review` / `Done`
+`setup.sh` 실행 시 "GitHub Project 보드를 자동으로 생성할까요?" 프롬프트에서 `y`를 선택하면:
+- 프로젝트 보드 생성
+- 필드 ID 자동 조회
+- `project-automation.yml`에 ID 자동 입력
 
-### 5-2. 필요한 ID 조회
+까지 한 번에 처리됩니다.
+
+**자동 설정 후 수동으로 해야 할 것:**
+
+1. **PROJECT_TOKEN Secret 등록** — 아래 5-4 참고
+
+### 5-2. 수동 설정
+
+`setup.sh`에서 자동 설정을 건너뛴 경우 수동으로 진행합니다.
+
+**보드 생성:**
+```bash
+# gh CLI로 생성
+gh project create --owner YOUR_USERNAME --title "프로젝트명"
+
+# 또는 GitHub 웹 UI에서:
+# 레포 → Projects 탭 → New project → Board 템플릿 선택
+```
+컬럼 생성: `Backlog` / `Ready` / `In Progress` / `In Review` / `Done`
+
+### 5-3. 필요한 ID 조회 (수동 설정 시)
 
 ```bash
 # Project 목록 및 번호 확인
@@ -113,8 +133,6 @@ gh project field-list 1 --owner YOUR_USERNAME --format json | jq .
 - `id` (PVT_xxx) → `PROJECT_ID`
 - Status 필드의 `id` (PVTSSF_xxx) → `FIELD_ID`
 - 각 상태 옵션의 `id` → `OPTION_BACKLOG`, `OPTION_IN_PROGRESS`, `OPTION_IN_REVIEW`
-
-### 5-3. workflow 파일 업데이트
 
 `.github/workflows/project-automation.yml`에서 `⚠️ 설정 필요` 주석이 달린 변수들을 채웁니다:
 
