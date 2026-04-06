@@ -67,6 +67,13 @@ else
         PROJECT_NUMBER=$(echo "$PROJECT_URL" | grep -oE '[0-9]+$')
         echo "  ✓ 프로젝트 보드 생성 완료 (번호: $PROJECT_NUMBER)"
 
+        # 레포에 프로젝트 보드 연결
+        REPO_NAME=$(gh repo view --json nameWithOwner -q '.nameWithOwner' 2>/dev/null)
+        if [ -n "$REPO_NAME" ]; then
+          gh project link "$PROJECT_NUMBER" --owner "$OWNER" --repo "$REPO_NAME" 2>/dev/null
+          echo "  ✓ 레포에 프로젝트 보드 연결 완료"
+        fi
+
         # Project ID 조회
         echo "  🔍 프로젝트 ID 조회 중..."
         PROJECT_ID=$(gh project view "$PROJECT_NUMBER" --owner "$OWNER" --format json 2>/dev/null | jq -r '.id // empty')
