@@ -1,0 +1,109 @@
+{
+    "version": "1.0",
+    "description": "Skill activation triggers for Claude Code. Controls when skills automatically suggest or block actions.",
+    "skills": {
+        "database-schema-design": {
+            "type": "domain",
+            "enforcement": "suggest",
+            "priority": "high",
+            "description": "Snowflake 데이터베이스 스키마 설계 (VARIANT, CLUSTER BY, Time Travel, Streams/Tasks)",
+            "promptTriggers": {
+                "keywords": [
+                    "스키마",
+                    "schema",
+                    "테이블 설계",
+                    "snowflake",
+                    "variant",
+                    "cluster by",
+                    "copy into",
+                    "stage",
+                    "time travel",
+                    "데이터 모델링",
+                    "ERD",
+                    "dynamic table",
+                    "스트림",
+                    "stream"
+                ],
+                "intentPatterns": [
+                    "(설계|design|create).*?(schema|테이블|table|database)",
+                    "(snowflake|스노우플레이크).*?(schema|table|설계)",
+                    "(데이터|data).*?(모델|model|구조|structure)"
+                ]
+            }
+        },
+        "git-commit": {
+            "type": "domain",
+            "enforcement": "suggest",
+            "priority": "medium",
+            "description": "Conventional Commits 자동 분석 및 커밋 메시지 생성",
+            "promptTriggers": {
+                "keywords": [
+                    "commit",
+                    "커밋",
+                    "conventional commit"
+                ],
+                "intentPatterns": [
+                    "(git|깃).*?commit",
+                    "커밋.*?(메시지|message)"
+                ]
+            }
+        },
+        "test-driven-development": {
+            "type": "guardrail",
+            "enforcement": "warn",
+            "priority": "high",
+            "description": "TDD Red-Green-Refactor 사이클 강제",
+            "promptTriggers": {
+                "keywords": [
+                    "tdd",
+                    "test first",
+                    "테스트 먼저",
+                    "red green refactor"
+                ],
+                "intentPatterns": [
+                    "(구현|implement|build|만들).*?(feature|기능|버그|bug|fix)"
+                ]
+            }
+        },
+        "security-best-practices": {
+            "type": "domain",
+            "enforcement": "suggest",
+            "priority": "high",
+            "description": "Snowflake 보안 설정 (RBAC, Network Policy, Data Masking, Row Access Policy)",
+            "promptTriggers": {
+                "keywords": [
+                    "보안",
+                    "security",
+                    "rbac",
+                    "masking",
+                    "network policy",
+                    "row access",
+                    "권한",
+                    "role",
+                    "grant",
+                    "마스킹",
+                    "감사",
+                    "audit"
+                ],
+                "intentPatterns": [
+                    "(보안|security|secure).*?(설정|config|review|검토)",
+                    "(권한|role|grant|revoke).*?(설정|설계|design)",
+                    "(masking|마스킹).*?(policy|정책)"
+                ]
+            }
+        }
+    },
+    "notes": {
+        "enforcement_types": {
+            "suggest": "Skill suggestion appears but doesn't block execution",
+            "block": "Requires skill to be used before proceeding (guardrail)",
+            "warn": "Shows warning but allows proceeding"
+        },
+        "priority_levels": {
+            "critical": "Highest - Always trigger when matched",
+            "high": "Important - Trigger for most matches",
+            "medium": "Moderate - Trigger for clear matches",
+            "low": "Optional - Trigger only for explicit matches"
+        }
+    }
+}
