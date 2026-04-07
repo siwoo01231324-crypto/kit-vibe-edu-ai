@@ -94,26 +94,44 @@
 ## 04/08 (수) AI 활용 로그
 
 ### 사용 도구
-<!-- TODO: 사용한 AI 도구 기입 -->
+- Claude Code (Claude Opus 4.6, 1M context) — Team 3 agents 오케스트레이션, ralplan 합의 기반 플래닝, 최종 문서 통합
+- Claude Sonnet 4.6 (worker-1: 글로벌 리서치 + 네이밍)
+- Claude Opus 4.6 (worker-2: 국내 경쟁사 분석)
+- Claude Haiku 4.5 (worker-3: 브랜드 아이덴티티 초안)
 
 ### 주요 프롬프트 및 결과
 
-**프롬프트 1**: <!-- TODO -->
-- AI 응답 요약:
-- 채택 여부:
-- 수정 내용:
+**프롬프트 1**: /plan → ralplan 합의 기반 구현 계획 작성
+- AI 응답 요약: Planner→Architect→Critic 2회 반복으로 합의 도달. 모듈형 4문서 구조, 미존재 참조 파일 fallback 정책, "관계 회복" 프레이밍 비판 대응 입장 정립
+- 채택 여부: 채택 (Architect+Critic 모두 APPROVE)
+- 수정 내용: 사용자 요청으로 최종 1개 문서 통합 + 네이밍 전략 추가
+
+**프롬프트 2**: /team 3 브랜딩 리서치 + 문서 작성
+- AI 응답 요약: 3명 워커 병렬 실행 (글로벌 리서치 30KB + 국내 경쟁사 18KB + 아이덴티티 25KB) → Lead가 73KB 리서치를 단일 branding-strategy.md로 통합
+- 채택 여부: 채택
+- 수정 내용: Lead가 3개 리서치 결과를 재구성·편집하여 통합
 
 ### AI 기여 영역
-<!-- TODO -->
+- 글로벌 EdTech 5개 사례 웹 리서치 (ClassDojo, Duolingo, Notion, Kahoot, Canva) — 출처 URL 포함
+- 국내 경쟁사 6개 BI 재분석 (07번 문서 기반 브랜딩 관점 전환)
+- 네이밍 후보 8개 제안 + 6기준 평가 매트릭스
+- 브랜드 아이덴티티 (Mission/Vision/Personality/Values/Story/Keywords/Positioning)
+- 후킹 포인트 9개 카피안, Emotional Touch 맵, Aha Moment 시나리오
+- 톤앤매너 Do/Don't 12쌍, 컬러 팔레트 HEX값, 타이포그래피 계층
+- 프레이밍 비판 대응 (Why→How→What + 3층 메시지 구조)
 
 ### 인간 주도 영역
-<!-- TODO -->
+- 네이밍 전략 추가 요청 (기존 MirAI 재검토 지시)
+- "감성적이고 톡톡 튀는 방향" 크리에이티브 디렉션
+- 최종 1개 문서 통합 결정 (모듈형 4문서 → 단일 문서)
+- backlog-issue.md에 프로젝트 보드 Backlog 자동이동 기능 추가 검토
 
 ### 스크린샷
-<!-- TODO -->
+<!-- 해당 없음 — CLI 기반 작업 -->
 
 ### 오늘의 인사이트
-<!-- TODO -->
+- Team 3 agents로 리서치를 병렬화하면 73KB 분량의 조사를 동시에 처리 가능. 단, 웹 리서치가 포함된 태스크(worker-1)는 다른 워커보다 2배 이상 시간 소요
+- ralplan 합의 워크플로우(Planner→Architect→Critic)가 미존재 참조 파일, 내부 비판 문서와의 정합성 등 실행 전에 발견해야 할 이슈를 사전에 포착
 
 ---
 

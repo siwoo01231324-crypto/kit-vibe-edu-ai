@@ -79,6 +79,52 @@ gh issue create 명령으로 다음 본문의 이슈를 생성한다:
 - [ ] 해당 디렉토리 .ai.md 최신화
 ```
 
+## 프로젝트 보드 → Backlog 이동
+
+이슈 생성 후, 프로젝트 보드에서 "Backlog" 상태로 이동한다:
+
+```bash
+# 1. 이슈의 프로젝트 아이템 ID 조회
+ITEM_ID=$(gh api graphql -f query='
+  query($owner:String!, $repo:String!, $number:Int!) {
+    repository(owner:$owner, name:$repo) {
+      issue(number:$number) {
+        projectItems(first:10) { nodes { id project { id title } } }
+      }
+    }
+  }' -f owner="{OWNER}" -f repo="{REPO}" -F number={이슈번호} \
+  --jq '.data.repository.issue.projectItems.nodes[0].id')
+
+PROJECT_ID=$(# 위 쿼리에서 project.id 추출)
+
+# 2. Status 필드 ID 조회
+FIELD_ID=$(gh api graphql -f query='
+  query($projectId:ID!) {
+    node(id:$projectId) {
+      ... on ProjectV2 {
+        fields(first:20) {
+          nodes { ... on ProjectV2SingleSelectField { id name options { id name } } }
+        }
+      }
+    }
+  }' -f projectId="$PROJECT_ID" \
+  --jq '.data.node.fields.nodes[] | select(.name=="Status") | .id')
+
+BACKLOG_ID=$(# 위 쿼리에서 options[] | select(.name=="Backlog") | .id)
+
+# 3. Backlog으로 이동
+gh api graphql -f query='
+  mutation($projectId:ID!, $itemId:ID!, $fieldId:ID!, $optionId:String!) {
+    updateProjectV2ItemFieldValue(input:{
+      projectId:$projectId, itemId:$itemId, fieldId:$fieldId,
+      value:{singleSelectOptionId:$optionId}
+    }) { projectV2Item { id } }
+  }' -f projectId="$PROJECT_ID" -f itemId="$ITEM_ID" \
+     -f fieldId="$FIELD_ID" -f optionId="$BACKLOG_ID"
+```
+
+실패 시 경고만 출력하고 계속 진행한다.
+
 ## 완료 후
 
 생성된 이슈 번호와 URL을 출력한다.
