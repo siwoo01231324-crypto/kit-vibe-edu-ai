@@ -22,6 +22,12 @@
 │   ├── commands/           슬래시 커맨드 (bi, si, fi, ci 등)
 │   └── hooks/              Git 훅 스크립트
 ├── docs/                   ← 프로젝트 문서 (SOT)
+│   ├── ai-report/          AI 리포트·지침서·일일 로그
+│   │   ├── AI-REPORT.md    AI 리포트 본문 (6섹션)
+│   │   ├── ai-guidelines.md AI 활용 지침서 (4섹션)
+│   │   ├── daily-log.md    일일 AI 활용 로그
+│   │   ├── prompts/        핵심 프롬프트 원문 보관
+│   │   └── screenshots/    AI 활용 과정 캡처
 │   ├── specs/              기능 명세 + AC
 │   ├── onboarding/         환경 설정·기여 가이드
 │   └── work/               이슈별 작업 내역
