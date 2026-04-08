@@ -98,6 +98,7 @@
 - Claude Sonnet 4.6 (worker-1: 글로벌 리서치 + 네이밍)
 - Claude Opus 4.6 (worker-2: 국내 경쟁사 분석)
 - Claude Haiku 4.5 (worker-3: 브랜드 아이덴티티 초안)
+- oh-my-claudecode team (3 executor agents: agent-a, agent-b, agent-c) — Issue #22 병렬 실행
 
 ### 주요 프롬프트 및 결과
 
@@ -132,6 +133,73 @@
 ### 오늘의 인사이트
 - Team 3 agents로 리서치를 병렬화하면 73KB 분량의 조사를 동시에 처리 가능. 단, 웹 리서치가 포함된 태스크(worker-1)는 다른 워커보다 2배 이상 시간 소요
 - ralplan 합의 워크플로우(Planner→Architect→Critic)가 미존재 참조 파일, 내부 비판 문서와의 정합성 등 실행 전에 발견해야 할 이슈를 사전에 포착
+
+### 이슈 #22 — Next.js 15 프로젝트 초기화 + src/ 디렉토리 패턴 전환
+
+**사용 도구**:
+- Claude Code (Opus 4.6, 1M context) + oh-my-claudecode team (3 agents: agent-a, agent-b, agent-c 병렬)
+- Claude Sonnet 4.6 (agent-a: 스캐폴드, agent-b: 도구체인, agent-c: 문서/이슈)
+
+**주요 프롬프트 및 결과**:
+
+**프롬프트 1**: `/ri` → `/plan` → ralplan 합의 기반 구현 계획 수립
+- AI 응답 요약: src/ 디렉토리 채택(옵션 2) 결정 후 3-agent 병렬 실행 플랜 작성
+- 채택 여부: 채택
+- 수정 내용: 루트 클러터 정리 후 src/ 전환으로 재계획
+
+**프롬프트 2**: `/team 3` — 3-agent 병렬 실행
+- agent-a: package.json, tsconfig.json(`@/*`→`./src/*`), next.config.ts, Tailwind v3, ESLint, src/app/ 스캐폴드, `npm run dev`/`lint`/`build` 검증
+- agent-b: vitest.config.ts(`@/`→`./src`), playwright.config.ts, tests/ 스모크 테스트, `npm run test`/`e2e` 검증
+- agent-c: 문서 스윕(dev-spec §2/§6, 01_plan.md 가드레일 반전), .ai.md 6개 생성, AGENTS.md/루트 .ai.md 갱신, 백로그 이슈 #23-#38 body src/ 기준 일괄 업데이트, daily-log 갱신
+- 채택 여부: 채택
+
+**AI 기여 영역**:
+- src/ 디렉토리 스캐폴드 생성 (package.json, tsconfig, next.config, tailwind, postcss, eslint, src/app/)
+- vitest.config.ts + playwright.config.ts + tests/ 스모크 테스트 작성
+- .ai.md 파일 6개 신규 생성 (src/, src/app/, src/components/, src/lib/, src/types/, tests/)
+- AGENTS.md, 루트 .ai.md src/ 기반 구조로 전면 갱신
+- docs/specs/dev-spec.md §2.1 디렉토리 트리 + §6.3 alias 수정
+- 01_plan.md 가드레일 "src/ 금지" → "src/ 필수" 반전 + 매니페스트 경로 보정
+- 백로그 이슈 #23-#38 body 일괄 업데이트 (app/ → src/app/ 등 경로 치환)
+
+**인간 주도 영역**:
+- src/ 채택 결정 (옵션 2 승인)
+- 플랜 승인 및 팀 실행 지시
+- `npx playwright install chromium` 수동 실행
+- 커밋 최종 승인
+
+**오늘의 인사이트 (Issue #22)**:
+- 루트 클러터 문제를 src/ 채택으로 해결 — create-next-app 없이 수동 bootstrap으로 기존 파일 보존
+- 3-agent 병렬 실행(스캐폴드/도구체인/문서)이 순차 실행 대비 작업 시간을 ~3x 단축
+- 백로그 이슈 16개 body를 일괄 업데이트하여 후속 이슈 작업 시 경로 혼선 사전 차단
+
+---
+
+### 이슈 #22 — apps/web/ 모노레포 스타일 전환 (2차)
+
+**사용 도구**:
+- Claude Code (Opus 4.6, 1M context) + oh-my-claudecode team (5 executor agents: agent-a~e 병렬)
+- Claude Sonnet 4.6 (agent-a: 스캐폴드 이동+빌드, agent-b: 핵심 문서, agent-c: 보조 문서+.ai.md, agent-d: 백로그 이슈, agent-e: 인프라+검증)
+
+**주요 결정**:
+- 옵션 4 (apps/web/ 모노레포) 채택 — MIRAI 프로젝트 services/ 패턴 참고
+- 루트에 package.json 두지 않음 (MIRAI 스타일)
+- 개발자 워크플로: `cd apps/web && npm run dev`
+
+**AI 기여 영역**:
+- 스캐폴드 일괄 이동: src/, tests/, 설정 파일 등 19개 항목을 apps/web/ 하위로 이동 (agent-a)
+- 핵심 문서 4개 재작성: dev-spec.md, whitepaper, 01_plan.md, 00_issue.md (agent-b)
+- 보조 문서 5개 + .ai.md 7개 apps/web/ 경로 기준으로 보정 (agent-c)
+- GitHub 백로그 이슈 19개 (#23~#41) body 일괄 업데이트 — src/app/ → apps/web/src/app/ 등 (agent-d)
+- AGENTS.md, 루트 .ai.md, daily-log 갱신 + 최종 검증 (agent-e)
+
+**인간 주도 영역**:
+- src/ → apps/web/ 전환 결정 (MIRAI 구조 참고, 옵션 4 채택 판단)
+- 커밋 승인
+
+**오늘의 인사이트 (apps/web/ 전환)**:
+- 5-agent 병렬 실행으로 스캐폴드 이동, 문서 재작성, 이슈 업데이트를 동시 처리
+- apps/web/ 모노레포 패턴으로 루트 디렉토리 클러터 완전 해소
 
 ### 이슈 #18 — 기술 개발 명세(dev-spec.md) 작성 추가 작업
 
