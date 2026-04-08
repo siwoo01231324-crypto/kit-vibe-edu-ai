@@ -79,11 +79,11 @@ bash setup.sh
 ```markdown
 ## 레포 구조
 my-project/
-├── src/
-│   ├── api/       API 라우터
-│   ├── services/  비즈니스 로직
-│   └── db/        데이터베이스
-└── tests/
+├── apps/
+│   └── web/       Next.js 앱 (소스·설정·의존성)
+│       ├── src/   애플리케이션 소스
+│       └── tests/ 테스트
+└── docs/
 ```
 
 ---

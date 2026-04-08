@@ -36,80 +36,113 @@
 
 ```
 kit-vibe-edu-ai/
-├── app/
-│   ├── (student)/                  # 학생 퀴즈 게임 페이지 (레이아웃 분리)
-│   │   ├── join/
-│   │   │   └── page.tsx            # join_code 입력 + 닉네임 입력
-│   │   ├── quiz/
-│   │   │   └── [sessionId]/
-│   │   │       └── page.tsx        # 실시간 퀴즈 + 리더보드
-│   │   └── layout.tsx
-│   ├── (teacher)/                  # 교사 대시보드 (인증 필요)
-│   │   ├── dashboard/
-│   │   │   └── page.tsx            # 세션 목록
-│   │   ├── sessions/
-│   │   │   ├── new/
-│   │   │   │   └── page.tsx        # 세션 생성 + 문항 편집
-│   │   │   └── [id]/
-│   │   │       ├── page.tsx        # 세션 상세 (실시간 집계)
-│   │   │       ├── insights/
-│   │   │       │   └── page.tsx    # AI 인사이트 + 수업 초안
-│   │   │       └── live/
-│   │   │           └── page.tsx    # 라이브 진행 화면
-│   │   └── layout.tsx
-│   ├── api/
-│   │   ├── sessions/
-│   │   │   ├── route.ts            # POST /api/sessions
-│   │   │   └── [id]/
-│   │   │       ├── activate/
-│   │   │       │   └── route.ts    # POST /api/sessions/[id]/activate
-│   │   │       └── end/
-│   │   │           └── route.ts    # POST /api/sessions/[id]/end
-│   │   ├── insights/
-│   │   │   └── generate/
-│   │   │       └── route.ts        # POST /api/insights/generate
-│   │   └── class-draft/
-│   │       └── generate/
-│   │           └── route.ts        # POST /api/class-draft/generate
-│   ├── globals.css
-│   ├── layout.tsx                  # 루트 레이아웃
-│   └── page.tsx                    # 랜딩 (→ join 또는 로그인)
-├── components/
-│   ├── ui/                         # shadcn/ui 컴포넌트 (Button, Card 등)
-│   ├── quiz/
-│   │   ├── QuestionCard.tsx
-│   │   ├── AnswerOptions.tsx
-│   │   ├── Leaderboard.tsx
-│   │   └── Timer.tsx
-│   ├── dashboard/
-│   │   ├── SessionCard.tsx
-│   │   ├── ResponseChart.tsx
-│   │   └── InsightPanel.tsx
-│   └── shared/
-│       ├── QRCodeDisplay.tsx
-│       └── LoadingSpinner.tsx
-├── lib/
-│   ├── supabase/
-│   │   ├── client.ts               # 브라우저 Supabase 클라이언트
-│   │   ├── server.ts               # 서버 컴포넌트용 Supabase 클라이언트
-│   │   └── middleware.ts           # Auth 미들웨어
-│   ├── anthropic.ts                # Claude API 클라이언트
-│   ├── scoring.ts                  # 점수 계산 로직
-│   ├── join-code.ts                # join_code 생성 유틸
-│   └── prompts/
-│       ├── insights.ts             # AI 인사이트 프롬프트 템플릿
-│       └── class-draft.ts          # 수업 초안 프롬프트 템플릿
-├── types/
-│   ├── database.ts                 # Supabase generated types
-│   ├── api.ts                      # API Request/Response 인터페이스
-│   └── domain.ts                   # 도메인 모델 타입
-├── middleware.ts                   # Next.js 미들웨어 (Auth 라우팅)
-├── .env.local                      # (gitignore)
-├── next.config.ts
-├── tailwind.config.ts
-├── tsconfig.json
-└── vitest.config.ts
+├── AGENTS.md
+├── CLAUDE.md
+├── README.md
+├── .ai.md
+├── .gitignore
+├── .gitattributes
+├── setup.sh
+├── docs/
+│   ├── ai-report/
+│   ├── background/
+│   ├── branding/
+│   ├── onboarding/
+│   ├── specs/
+│   ├── whitepaper/
+│   └── work/
+├── scripts/
+│   └── check_invariants.py
+├── apps/
+│   └── web/                            ← Next.js 15 앱 (자체 완결)
+│       ├── package.json
+│       ├── package-lock.json
+│       ├── tsconfig.json
+│       ├── next.config.ts
+│       ├── next-env.d.ts
+│       ├── tailwind.config.ts
+│       ├── postcss.config.mjs
+│       ├── .eslintrc.json
+│       ├── .env.example
+│       ├── vitest.config.ts
+│       ├── playwright.config.ts
+│       ├── src/
+│       │   ├── app/
+│       │   │   ├── (student)/          # 학생 퀴즈 게임 페이지 (레이아웃 분리)
+│       │   │   │   ├── join/
+│       │   │   │   │   └── page.tsx    # join_code 입력 + 닉네임 입력
+│       │   │   │   ├── quiz/
+│       │   │   │   │   └── [sessionId]/
+│       │   │   │   │       └── page.tsx # 실시간 퀴즈 + 리더보드
+│       │   │   │   └── layout.tsx
+│       │   │   ├── (teacher)/          # 교사 대시보드 (인증 필요)
+│       │   │   │   ├── dashboard/
+│       │   │   │   │   └── page.tsx    # 세션 목록
+│       │   │   │   ├── sessions/
+│       │   │   │   │   ├── new/
+│       │   │   │   │   │   └── page.tsx # 세션 생성 + 문항 편집
+│       │   │   │   │   └── [id]/
+│       │   │   │   │       ├── page.tsx # 세션 상세 (실시간 집계)
+│       │   │   │   │       ├── insights/
+│       │   │   │   │       │   └── page.tsx # AI 인사이트 + 수업 초안
+│       │   │   │   │       └── live/
+│       │   │   │   │           └── page.tsx # 라이브 진행 화면
+│       │   │   │   └── layout.tsx
+│       │   │   ├── api/
+│       │   │   │   ├── sessions/
+│       │   │   │   │   ├── route.ts    # POST /api/sessions
+│       │   │   │   │   └── [id]/
+│       │   │   │   │       ├── activate/
+│       │   │   │   │       │   └── route.ts # POST /api/sessions/[id]/activate
+│       │   │   │   │       └── end/
+│       │   │   │   │           └── route.ts # POST /api/sessions/[id]/end
+│       │   │   │   ├── insights/
+│       │   │   │   │   └── generate/
+│       │   │   │   │       └── route.ts # POST /api/insights/generate
+│       │   │   │   └── class-draft/
+│       │   │   │       └── generate/
+│       │   │   │           └── route.ts # POST /api/class-draft/generate
+│       │   │   ├── globals.css
+│       │   │   ├── layout.tsx          # 루트 레이아웃
+│       │   │   └── page.tsx            # 랜딩 (→ join 또는 로그인)
+│       │   ├── components/
+│       │   │   ├── ui/                 # shadcn/ui 컴포넌트 (Button, Card 등)
+│       │   │   ├── quiz/
+│       │   │   │   ├── QuestionCard.tsx
+│       │   │   │   ├── AnswerOptions.tsx
+│       │   │   │   ├── Leaderboard.tsx
+│       │   │   │   └── Timer.tsx
+│       │   │   ├── dashboard/
+│       │   │   │   ├── SessionCard.tsx
+│       │   │   │   ├── ResponseChart.tsx
+│       │   │   │   └── InsightPanel.tsx
+│       │   │   └── shared/
+│       │   │       ├── QRCodeDisplay.tsx
+│       │   │       └── LoadingSpinner.tsx
+│       │   ├── lib/
+│       │   │   ├── supabase/
+│       │   │   │   ├── client.ts       # 브라우저 Supabase 클라이언트
+│       │   │   │   ├── server.ts       # 서버 컴포넌트용 Supabase 클라이언트
+│       │   │   │   └── middleware.ts   # Auth 미들웨어
+│       │   │   ├── anthropic.ts        # Claude API 클라이언트
+│       │   │   ├── scoring.ts          # 점수 계산 로직
+│       │   │   ├── join-code.ts        # join_code 생성 유틸
+│       │   │   └── prompts/
+│       │   │       ├── insights.ts     # AI 인사이트 프롬프트 템플릿
+│       │   │       └── class-draft.ts  # 수업 초안 프롬프트 템플릿
+│       │   ├── types/
+│       │   │   ├── database.ts         # Supabase generated types
+│       │   │   ├── api.ts              # API Request/Response 인터페이스
+│       │   │   └── domain.ts           # 도메인 모델 타입
+│       │   └── middleware.ts           # Next.js 미들웨어 (Auth 라우팅) ← 후속 #24
+│       ├── tests/
+│       │   ├── unit/
+│       │   ├── integration/
+│       │   └── e2e/
+│       └── node_modules/
 ```
+
+> **개발자 워크플로**: `cd apps/web && npm run dev` — 모든 명령은 `apps/web/` 내에서 실행한다. 루트에는 `package.json` 없음 (MIRAI 스타일 모노레포).
 
 ### 2.2 기술 스택 + npm 의존성
 
@@ -1232,7 +1265,9 @@ async function getFeedbackSummary(sessionId):
 
 ### 6.3 도구별 설정 명세
 
-#### Vitest (`vitest.config.ts`)
+#### Vitest (`apps/web/vitest.config.ts`)
+
+> 모든 설정 파일은 `apps/web/` 하위에 위치. `__dirname` = `apps/web/`.
 
 ```typescript
 import { defineConfig } from 'vitest/config';
@@ -1258,11 +1293,13 @@ export default defineConfig({
 });
 ```
 
+- 위치: `apps/web/vitest.config.ts`
 - 환경: `node` (기본) + `jsdom` (컴포넌트 테스트 파일에 `@vitest-environment jsdom` 주석)
 - 커버리지: `@vitest/coverage-v8`
-- 경로 alias: `@/` → `./src`
+- 경로 alias: `@/` → `apps/web/src/` (`__dirname` 이 `apps/web/` 이므로 `./src` 상대경로 동일)
+- 실행: `cd apps/web && npm run test`
 
-#### Playwright (`playwright.config.ts`)
+#### Playwright (`apps/web/playwright.config.ts`)
 
 ```typescript
 import { defineConfig, devices } from '@playwright/test';
@@ -1285,6 +1322,9 @@ export default defineConfig({
 });
 ```
 
+- 위치: `apps/web/playwright.config.ts`
+- 실행: `cd apps/web && npm run e2e`
+
 - 브라우저: Chromium만 (7일 제약, Firefox/Safari는 Phase 2)
 - Base URL: `http://localhost:3000`
 - 테스트 유저: Supabase 로컬에 시드된 테스트 교사 계정 (`seed.sql` 참조)
@@ -1302,17 +1342,17 @@ supabase db push
 supabase db reset   # migrations + seed.sql 일괄 적용
 ```
 
-- 마이그레이션: `supabase/migrations/` 디렉토리에 DDL 파일 순서대로 저장
-- 시드 데이터: `supabase/seed.sql` — 테스트 교사 계정, 데모 세션/문항/응답 포함
-- 로컬 환경 변수: `.env.local`의 `NEXT_PUBLIC_SUPABASE_URL=http://localhost:54321`
+- 마이그레이션: `apps/web/supabase/migrations/` 디렉토리에 DDL 파일 순서대로 저장
+- 시드 데이터: `apps/web/supabase/seed.sql` — 테스트 교사 계정, 데모 세션/문항/응답 포함
+- 로컬 환경 변수: `apps/web/.env.local`의 `NEXT_PUBLIC_SUPABASE_URL=http://localhost:54321`
 
 #### MSW (Mock Service Worker)
 
 - 용도: Claude API 호출 mock (`/api/insights/generate`, `/api/class-draft/generate` 통합 테스트)
-- 통합 테스트 셋업 파일(`tests/setup.ts`)에서 MSW 서버 인스턴스 구동
+- 통합 테스트 셋업 파일(`apps/web/tests/setup.ts`)에서 MSW 서버 인스턴스 구동
 
 ```typescript
-// tests/setup.ts
+// apps/web/tests/setup.ts
 import { setupServer } from 'msw/node';
 import { http, HttpResponse } from 'msw';
 
@@ -1342,7 +1382,7 @@ afterAll(() => server.close());
 #### RED 1: `calculateScore` 테스트 작성 (실패)
 
 ```typescript
-// tests/unit/score.test.ts
+// apps/web/tests/unit/score.test.ts
 import { calculateScore } from '@/lib/score';
 
 describe('calculateScore', () => {
@@ -1366,7 +1406,7 @@ describe('calculateScore', () => {
 #### GREEN 1: 최소 구현
 
 ```typescript
-// src/lib/score.ts
+// apps/web/src/lib/score.ts
 const MAX_SCORE = 100;
 const MIN_SCORE = 1;
 const MAX_RESPONSE_MS = 1000;
@@ -1382,7 +1422,7 @@ export function calculateScore(isCorrect: boolean, responseTimeMs: number): numb
 
 #### REFACTOR 1
 
-- 상수 `MAX_SCORE`, `MIN_SCORE`, `MAX_RESPONSE_MS`를 `src/lib/constants.ts`로 추출
+- 상수 `MAX_SCORE`, `MIN_SCORE`, `MAX_RESPONSE_MS`를 `apps/web/src/lib/constants.ts`로 추출
 - JSDoc 추가
 
 → 커밋: `test(IU-01): calculateScore unit tests + implementation`
