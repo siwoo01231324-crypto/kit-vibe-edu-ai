@@ -133,6 +133,43 @@
 - Team 3 agents로 리서치를 병렬화하면 73KB 분량의 조사를 동시에 처리 가능. 단, 웹 리서치가 포함된 태스크(worker-1)는 다른 워커보다 2배 이상 시간 소요
 - ralplan 합의 워크플로우(Planner→Architect→Critic)가 미존재 참조 파일, 내부 비판 문서와의 정합성 등 실행 전에 발견해야 할 이슈를 사전에 포착
 
+### 이슈 #18 — 기술 개발 명세(dev-spec.md) 작성 추가 작업
+
+**사용 도구**:
+- Claude Code (Opus 4.6, 1M context) — Lead 오케스트레이션, ralplan 컨센서스, 3개 파트 병합
+- Claude Opus 4.6 (Planner, Architect) — 합의 기반 플랜 검증
+- Claude Sonnet 4.6 (worker-1-infra, worker-2-units, worker-3-roadmap) — 병렬 명세 작성
+
+**주요 프롬프트 및 결과**:
+
+**프롬프트 1**: /ri → /plan → ralplan 합의 기반 구현 계획 작성
+- AI 응답 요약: 기존 01_plan.md가 AC 체크리스트만 있는 초안이어서 ralplan 호출. Planner가 RALPLAN-DR 요약 포함 초안 작성 → Architect가 ITERATE(5개 보강사항) 판정 → 피드백 반영한 최종 플랜 직접 작성
+- 채택 여부: 채택 (Architect 피드백 5건 모두 반영: Next.js 14/15 불일치 해소, "project-plan에 없는 것만 작성" 원칙, 학생 엔티티 부재 명시, Realtime 채널 설계 포함, F-01/F-02 통합)
+- 수정 내용: 01_plan.md를 전면 재작성 — 사전 결정 사항 4건, 5-step 가이드라인, Guardrails, Step별 완료 확인 체크리스트 추가
+
+**프롬프트 2**: /team 3 dev-spec.md 작성 (TDD 모드 활성)
+- AI 응답 요약: 3명 워커 병렬 실행 — worker-1(§1~§4: 인프라+DB+API, 572줄) + worker-2(§5: IU-01~IU-06 상세 + 62개 테스트 케이스, 621줄) + worker-3(§6~§7: TDD 전략+로드맵+.ai.md, 336줄) → Lead가 1543줄 단일 dev-spec.md로 통합
+- 채택 여부: 채택
+- 수정 내용: Lead가 공통 헤더/TOC 작성 + 각 파트 중복 헤더 제거 후 순차 병합, 중간 파일 3개 삭제
+
+**AI 기여 영역**:
+- DB 스키마 DDL 7개 테이블 (teachers, sessions, questions, responses, ai_insights, class_drafts, thumbs_feedback) + RLS 정책
+- API 엔드포인트 5개 + Supabase Direct 경계 + Realtime 채널 3개 매트릭스
+- 구현 단위 IU-01~IU-06 각 입력/처리/출력/일론5단계/TDD 테스트 명세
+- AI 프롬프트 템플릿 (IU-02 이해도 분석, IU-04 수업 초안)
+- 62개 TDD 테스트 케이스 (단위 ~30 + 통합 ~15 + E2E ~8 + 기타)
+- Phase 1~4 로드맵 + D1~D7 일별 구현 일정 + 공모전 제출 체크리스트
+
+**인간 주도 영역**:
+- /ri 후 "다시 해" 지시 2회 (에이전트 루프 중단 → 직접 작성 전환 판단)
+- /plan /team 3 조합 지시 (단일 executor가 아닌 병렬 팀으로 진행)
+- TDD 기반, 일론 5원칙, 기획서·브랜딩 참조 명시적 요구
+
+**오늘의 인사이트 (dev-spec 작업)**:
+- Ralplan 컨센서스가 Architect 단계에서 "project-plan.md 내부 불일치(Next.js 14 vs 15)"를 사전에 포착 — 구현 시작 후 발견했다면 수정 비용이 커졌을 이슈
+- /team 3 병렬 워커 분해 시, 문서의 섹션이 명확히 독립적일 때만 효과적 (본 작업에서 §1~§4, §5, §6~§7은 자연스러운 분할선)
+- TDD 모드가 활성화되어 worker-2가 구현보다 먼저 62개 테스트 케이스를 정의 — Red-Green-Refactor 사이클의 "Red" 단계에 바로 진입 가능한 상태
+
 ---
 
 ## 04/09 (목) AI 활용 로그
