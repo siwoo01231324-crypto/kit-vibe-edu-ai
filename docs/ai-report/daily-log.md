@@ -201,6 +201,35 @@
 - 5-agent 병렬 실행으로 스캐폴드 이동, 문서 재작성, 이슈 업데이트를 동시 처리
 - apps/web/ 모노레포 패턴으로 루트 디렉토리 클러터 완전 해소
 
+### 이슈 #23 — Supabase 로컬 환경 + DB 스키마
+
+**사용 도구**:
+- Claude Code (Opus 4.6, 1M context) + `/ri` `/plan` `/team 3`
+- Claude Sonnet 4.6 (worker-1: supabase/ 스캐폴드, worker-2: SDK 클라이언트, worker-3: 통합 테스트)
+
+**주요 작업**: Issue #23 Supabase 로컬 환경 + DB 스키마 (7 테이블 + 13 RLS + 4 인덱스) 구현
+
+**프롬프트 1**: `/team 3` — 3-agent 병렬 실행
+- AI 응답 요약: 3명 워커 병렬 실행 — worker-1(supabase/ 스캐폴드 + `20260408000000_initial_schema.sql`) + worker-2(`@supabase/ssr` client/server + database.ts) + worker-3(Vitest 통합 테스트 + 문서)
+- 채택 여부: 채택
+
+**AI 기여 영역**:
+- Task #1 (worker-1): `supabase/config.toml`, `supabase/migrations/20260408000000_initial_schema.sql` (dev-spec §3.2 DDL — 7테이블 + 13 RLS 정책 + 4 인덱스), `supabase/.ai.md`, `apps/web/.env.example`, 루트 `.gitignore` 업데이트
+- Task #2 (worker-2): `apps/web/src/lib/supabase/client.ts` (`@supabase/ssr` createBrowserClient), `server.ts` (RSC용 async cookies + createAdminClient), `apps/web/src/types/database.ts` (수동 Database 타입), `apps/web/src/lib/supabase/.ai.md`
+- Task #3 (worker-3): `apps/web/tests/integration/schema.test.ts` (Vitest — RLS 3종: AC4 익명 사용자, AC5 교사 간 격리, AC6 본인 세션 CRUD), 문서 업데이트 (daily-log, 00_issue.md)
+
+**인간 주도 영역**:
+- DDL 최종 검토 (불변식 2)
+- Docker Desktop 설치 및 `supabase start` 실행
+- `.env.local` 환경 변수 키 주입
+- 커밋 최종 승인
+
+**오늘의 인사이트 (Issue #23)**:
+- Supabase 로컬 스택은 Docker 의존성 때문에 CI에서 자동 검증이 어렵다 — 스킵 가드(`SKIP_SUPABASE_LOCAL=1` 또는 헬스체크 실패)로 로컬 미기동 환경에서도 테스트가 안전하게 skip 되도록 설계
+- `@supabase/ssr`의 `createBrowserClient` / RSC 쿠키 기반 서버 클라이언트 분리 패턴이 Next.js 15 App Router와 자연스럽게 맞물림
+
+---
+
 ### 이슈 #18 — 기술 개발 명세(dev-spec.md) 작성 추가 작업
 
 **사용 도구**:
@@ -243,26 +272,44 @@
 ## 04/09 (목) AI 활용 로그
 
 ### 사용 도구
-<!-- TODO: 사용한 AI 도구 기입 -->
+- Claude Code (Claude Opus 4.6 — 1M context) — 이슈 #23 Supabase 로컬 환경 + DB 스키마 런타임 검증
+- Docker Desktop + Supabase CLI v2.88.1 — 로컬 Postgres + 14 컨테이너 스택 가동
+- Vitest 2.1.9 — 통합 테스트 (RLS 정책 3종 검증)
 
 ### 주요 프롬프트 및 결과
 
-**프롬프트 1**: <!-- TODO -->
+**프롬프트 1**: 이슈 #23 코드 구현 후 직접 런타임 검증 요청 — `supabase start` → `db reset` → integration test → `/fi`
 - AI 응답 요약:
-- 채택 여부:
-- 수정 내용:
+  1. Docker + npx supabase 가용 확인 → `supabase start` (이미지 ~10개 다운로드 후 14 컨테이너 가동)
+  2. `apps/web/.env.local` 에 anon/service_role JWT 키 주입 (legacy JWT 키 사용 — 신키는 PostgREST role claim 미지원)
+  3. `supabase db reset` → `20260408000000_initial_schema.sql` 적용 클린 (재현성 확인)
+  4. 통합 테스트 첫 실행 → 3개 이슈 발견:
+     - Vitest 가 `.env.local` 자동 로드 X → `vitest.config.ts` 에 `loadEnv` 추가
+     - 테스트 컬럼 정합성 오류 (`responses.content` → 실제는 `question_id`+`nickname`+`selected_answer`+`is_correct`+`response_time_ms`, `thumbs_feedback.value` → `nickname`+`type`)
+     - `sessions` NOT NULL 누락 (`subject`/`grade`/`join_code`)
+     - `adminClient.auth.signInWithPassword` 호출이 admin 세션을 teacher_a JWT 로 덮어써서 service_role 권한 상실 → 별도 sign-in 클라이언트 분리
+  5. 수정 후 재실행 → **3/3 통합 테스트 + 1/1 unit = 4 passed, tsc exit 0, lint clean**
+- 채택 여부: 채택 (모든 AC 6/6 자동 검증 완료)
+- 수정 내용: 위 4개 패치 (`vitest.config.ts`, `tests/integration/schema.test.ts`, `.env.local` 키 형식)
 
 ### AI 기여 영역
-<!-- TODO -->
+- Supabase CLI 가동 자동화 (다운로드 진행률 폴링, 스택 상태 확인)
+- 테스트 실패 디버깅: RLS 위반 원인을 admin client 세션 mutation 으로 정확히 분리
+- legacy vs new key format 차이 분석 + .env.local 키 결정
+- daily-log + 00_issue.md 작업 내역 자동 갱신
 
 ### 인간 주도 영역
-<!-- TODO -->
+- "지금 다 구현된 거 맞아?" 검증 요청 — AI 가 단순히 코드 작성으로 끝내는 것 방지
+- "마저 해 / 다시 해봐" — 디버깅 루프 진행 결정
+- 최종 인간 검토 후 커밋·PR 승인 (불변식 2)
 
 ### 스크린샷
-<!-- TODO -->
+- (해당 없음 — CLI 작업 위주)
 
 ### 오늘의 인사이트
-<!-- TODO -->
+- **AI 가 작성한 통합 테스트는 spec 컬럼명을 정확히 지키지 않을 수 있다.** worker-3 가 `responses.content` 같은 가상의 컬럼을 사용했고, 런타임 검증 단계에서야 발견됨. → **로컬 DB 가 없으면 끝까지 잡히지 않는 결함**. 다음 이슈부터는 코드 작성 단계에서 dev-spec DDL grep 으로 컬럼 정합성 자가 검증을 강제할 것.
+- **`adminClient.auth.signInWithPassword` 사이드이펙트** — service_role 클라이언트로 sign-in 호출하면 그 세션이 user JWT 로 바뀐다는 것은 SDK 문서에 명시되지 않은 위험. 별도 throwaway 클라이언트 패턴이 안전.
+- **Supabase CLI v2.88 신키(`sb_publishable_*`/`sb_secret_*`)** 는 PostgREST 의 PG role claim 을 자동 매핑하지 않아 RLS 가 동작하지 않음. legacy JWT 키 (`role=anon`/`role=service_role` claim 포함) 를 명시적으로 사용해야 함. SDK 문서 업데이트 필요.
 
 ---
 

@@ -8,6 +8,9 @@
 .env
 .env.*
 !.env.example
+.env.local
+.env*.local
+apps/web/.env.local
 
 # 의존성
 node_modules/
@@ -20,6 +23,7 @@ dist/
 build/
 .next/
 out/
+*.tsbuildinfo
 
 # 테스트 결과물
 test-results/
@@ -39,6 +43,10 @@ Thumbs.db
 
 # OMC (oh-my-claudecode)
 .omc/
+
+# Supabase local state
+supabase/.branches/
+supabase/.temp/
 
 # IDE
 .idea/
