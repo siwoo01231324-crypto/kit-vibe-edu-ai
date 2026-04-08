@@ -313,6 +313,37 @@
 
 ---
 
+### 이슈 #24 — Supabase Auth (Google OAuth) + 미들웨어 + teachers 자동 생성
+
+**사용 도구**:
+- Claude Code (Claude Sonnet 4.6) — executor 단일 에이전트, 직접 구현
+
+**주요 작업**: Google OAuth 인증 흐름 전체 구현 (미들웨어, 로그인 페이지, auth/callback, teacher 라우트 그룹, DB 트리거)
+
+**AI 기여 영역**:
+- `supabase/migrations/20260408000001_auth_trigger.sql` — `handle_new_user` 트리거 (auth.users INSERT 시 teachers row 자동 생성, SECURITY DEFINER, ON CONFLICT DO NOTHING)
+- `supabase/config.toml` 수정 — `additional_redirect_urls` 보강, `[auth.external.google]` 섹션 추가
+- `apps/web/src/lib/supabase/middleware.ts` — `updateSession` 헬퍼 (`@supabase/ssr` createServerClient + cookies 바인딩, `getUser()` 사용)
+- `apps/web/src/middleware.ts` — `/teacher/*` 보호 + `/login` 로그인 상태 리다이렉트
+- `apps/web/src/app/login/page.tsx` — 서버 컴포넌트, searchParams(next/error) 처리
+- `apps/web/src/app/login/GoogleSignInButton.tsx` — 클라이언트 컴포넌트, `signInWithOAuth`
+- `apps/web/src/app/auth/callback/route.ts` — OAuth 코드 교환 + teachers upsert (open redirect 방어 포함)
+- `apps/web/src/app/(teacher)/layout.tsx` — 서버 컴포넌트, `getUser()` 2차 가드
+- `apps/web/src/app/(teacher)/SignOutButton.tsx` — 클라이언트 컴포넌트, `signOut()`
+- `apps/web/src/app/(teacher)/dashboard/page.tsx` — teachers 테이블 조회 후 환영 메시지
+- `.ai.md` 3개 (`login/`, `(teacher)/`, `(teacher)/dashboard/`)
+- `apps/web/tests/integration/auth-trigger.test.ts` — 트리거 양성/음성/멱등성 3케이스
+- `apps/web/tests/integration/session-insert-guard.test.ts` — sessions RLS 3케이스 (anon 거부, teacher 자기 INSERT 허용, 타인 id INSERT 거부)
+- `apps/web/.env.local.example` 신규 작성
+
+**인간 주도 영역**:
+- Google Cloud Console OAuth 앱 생성 및 Client ID/Secret 발급
+- `.env.local` 실제 키 주입
+- `supabase db reset` 실행 (트리거 마이그레이션 적용)
+- 커밋 최종 승인
+
+---
+
 ## 04/10 (금) AI 활용 로그
 
 ### 사용 도구
