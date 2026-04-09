@@ -346,27 +346,35 @@
 
 ## 04/10 (금) AI 활용 로그
 
+### 이슈 #25 — 점수 계산 + 닉네임 검증 유틸 (TDD)
+
 ### 사용 도구
-<!-- TODO: 사용한 AI 도구 기입 -->
+- Claude Code (Claude Sonnet 4.6) — executor 단일 에이전트, TDD 사이클 직접 구현
 
 ### 주요 프롬프트 및 결과
 
-**프롬프트 1**: <!-- TODO -->
-- AI 응답 요약:
-- 채택 여부:
-- 수정 내용:
+**프롬프트 1**: 이슈 #25 — `calculateScore`, `validateNickname` TDD 구현 (Red → Green → Refactor)
+- AI 응답 요약: 테스트 7개 먼저 작성(RED) → scoring.ts, validation.ts 구현(GREEN) → JSDoc 주석 추가(REFACTOR) → .ai.md 업데이트
+- 채택 여부: 채택
+- 수정 내용: 신규 파일 3개 생성 (test, scoring.ts, validation.ts)
 
 ### AI 기여 영역
-<!-- TODO -->
+- `apps/web/tests/unit/scoring.test.ts` — 7개 단위 테스트 (calculateScore 5개, validateNickname 7개)
+- `apps/web/src/lib/scoring.ts` — `calculateScore(isCorrect, responseTimeMs)`: 오답 0, 정답 max(100, round(1000 - ms/10))
+- `apps/web/src/lib/validation.ts` — `validateNickname(nickname)`: `/^[가-힣a-zA-Z0-9_]{2,12}$/` 정규식
+- `apps/web/src/lib/.ai.md` — scoring.ts, validation.ts 항목 추가
 
 ### 인간 주도 영역
-<!-- TODO -->
+- TDD 순서 (Red → Green → Refactor) 지시
+- export 이름/시그니처 고정 요건 확인
+- 최종 검토 후 커밋 승인 (불변식 2)
 
 ### 스크린샷
-<!-- TODO -->
+- (해당 없음 — 순수 함수 단위 구현)
 
 ### 오늘의 인사이트
-<!-- TODO -->
+- 순수 함수 유틸은 의존성이 없어 TDD 사이클이 가장 빠름 — 테스트→구현→JSDoc 전 과정이 단일 executor로 완결
+- `Math.max(MIN_SCORE, Math.round(...))` 패턴으로 하한 보장을 한 줄로 표현 가능
 
 ---
 
