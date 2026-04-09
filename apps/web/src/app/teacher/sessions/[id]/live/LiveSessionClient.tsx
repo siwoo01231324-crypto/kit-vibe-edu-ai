@@ -3,6 +3,8 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { QRCodeDisplay } from '@/components/shared/QRCodeDisplay'
+import { useLeaderboard } from '@/hooks/useLeaderboard'
+import { Leaderboard } from '@/components/quiz/Leaderboard'
 
 interface Session {
   id: string
@@ -24,6 +26,7 @@ export function LiveSessionClient({ session, joinUrl }: Props) {
   const router = useRouter()
   const [isPending, setIsPending] = useState(false)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
+  const { leaderboard, isLoading: leaderboardLoading } = useLeaderboard(session.id)
 
   async function handleActivate() {
     setIsPending(true)
@@ -110,6 +113,11 @@ export function LiveSessionClient({ session, joinUrl }: Props) {
       {/* 에러 메시지 */}
       {errorMsg && (
         <p className="text-center text-red-600 text-sm">{errorMsg}</p>
+      )}
+
+      {/* 실시간 순위 리더보드 (active / ended 시 표시) */}
+      {(session.status === 'active' || session.status === 'ended') && (
+        <Leaderboard leaderboard={leaderboard} isLoading={leaderboardLoading} />
       )}
     </div>
   )
