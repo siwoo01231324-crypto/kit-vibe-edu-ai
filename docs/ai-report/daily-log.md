@@ -672,3 +672,33 @@ Issue #31 교사 대시보드 세션 목록 + 실시간 집계 차트 구현 (IU
 - `responses` RLS: anon INSERT 전용 → 정답/점수 전부 로컬 계산 (`isCorrect = choiceIndex === correct_answer`, `calculateScore` 재사용)
 - 중복 응답 차단: `answeredQuestionIds: Set<string>` 즉시 추가 → INSERT 실패 시만 롤백
 - Realtime 채널명 dev-spec §4.3 준수: `session:{sessionId}:questions`
+
+---
+
+## 04/09 (수) AI 활용 로그
+
+### 사용 도구
+- Claude Code (Claude Sonnet 4.6) — 이슈 #34 리더보드 실시간 표시 전체 구현
+
+### 주요 프롬프트 및 결과
+
+**프롬프트**: 이슈 #34 리더보드 실시간 표시 구현 (플랜 파일 기반)
+- AI 응답 요약: buildLeaderboard 순수 함수, useLeaderboard 훅, Leaderboard UI 컴포넌트, 단위 테스트 7종, 학생/교사 페이지 통합 구현
+- 채택 여부: 채택
+
+### AI 기여 영역
+- `apps/web/src/lib/leaderboard.ts` — buildLeaderboard() 순수 함수 (nickname별 점수 합산, 동점 시 submitted_at ASC 정렬, rank 순차 할당)
+- `apps/web/src/hooks/useLeaderboard.ts` — 초기 fetch + Realtime INSERT 구독 + 3초 폴링 폴백 훅
+- `apps/web/src/components/quiz/Leaderboard.tsx` — 순위 리스트 UI (메달 아이콘, 본인 닉네임 하이라이트, 최대 10위, 로딩/빈 상태 처리)
+- `apps/web/tests/unit/leaderboard.test.ts` — 단위 테스트 7종 (기본 정렬, 동점 처리, 단일 응답, 빈 배열, 다중 응답 합산, 닉네임 특수문자, 원본 배열 불변성)
+- `apps/web/src/app/(student)/quiz/[sessionId]/page.tsx` — 종료 화면에 Leaderboard 컴포넌트 추가
+- `apps/web/src/app/teacher/sessions/[id]/live/LiveSessionClient.tsx` — active/ended 시 Leaderboard 컴포넌트 추가
+
+### 인간 주도 영역
+- 최종 코드 검토 및 커밋 (불변식 2)
+- anon RLS 제약(학생은 responses SELECT 불가) 설계 결정 검토
+
+### 핵심 설계 결정
+- anon은 responses SELECT 불가 → 학생 종료 화면의 Leaderboard는 빈 상태로 표시 (교사 화면에서만 실질적 데이터 표시)
+- Realtime 채널명: `leaderboard-{sessionId}` (기존 채널과 충돌 회피)
+- 동점 정렬 기준: first_response_at (submitted_at 중 최솟값) ASC — 먼저 응답한 학생 우선
