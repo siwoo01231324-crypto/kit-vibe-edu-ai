@@ -591,3 +591,28 @@
 
 ### 오늘의 인사이트
 <!-- TODO -->
+
+---
+
+### 이슈 #33 — 학생 퀴즈 응답 + 점수 저장 + Realtime 문항 동기화
+
+**사용 도구**:
+- Claude Code (Claude Sonnet 4.6) — executor 에이전트, TDD 사이클 구현
+
+**주요 작업**: 학생이 퀴즈 문항에 응답하고 점수를 저장하는 화면 + Realtime 문항 동기화 구현
+
+**AI 기여 영역**:
+- `apps/web/src/app/(student)/quiz/[sessionId]/page.tsx` — 퀴즈 페이지 (sessionStorage 가드, 선택지 렌더링, handleSelect, 정답/오답 애니메이션, 세션 종료 감지)
+- `apps/web/src/hooks/useStudentQuestions.ts` — questions 초기 fetch + Realtime INSERT/UPDATE 구독 훅 (채널명: `session:{sessionId}:questions`)
+- `apps/web/tests/integration/student-quiz.test.ts` — 통합 테스트 3종 (TEST-IU1-I03·I04·I05)
+- `apps/web/src/app/globals.css` — `@keyframes shake` + `.animate-shake` 추가
+- `apps/web/src/app/(student)/quiz/.ai.md` — 디렉토리 목적·구조·역할 기술
+
+**인간 주도 영역**:
+- 최종 코드 검토 및 커밋 (불변식 2)
+- Supabase 로컬 환경에서 통합 테스트 실행 검증
+
+**핵심 설계 결정**:
+- `responses` RLS: anon INSERT 전용 → 정답/점수 전부 로컬 계산 (`isCorrect = choiceIndex === correct_answer`, `calculateScore` 재사용)
+- 중복 응답 차단: `answeredQuestionIds: Set<string>` 즉시 추가 → INSERT 실패 시만 롤백
+- Realtime 채널명 dev-spec §4.3 준수: `session:{sessionId}:questions`
