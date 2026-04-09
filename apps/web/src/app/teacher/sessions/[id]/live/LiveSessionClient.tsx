@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { QRCodeDisplay } from '@/components/shared/QRCodeDisplay'
 import { useLeaderboard } from '@/hooks/useLeaderboard'
 import { Leaderboard } from '@/components/quiz/Leaderboard'
+import { LiveStatsPanel } from './LiveStatsPanel'
 
 interface Session {
   id: string
@@ -17,12 +18,21 @@ interface Session {
   ended_at: string | null
 }
 
+interface Question {
+  id: string
+  question_order: number
+  content: string
+  options: string[]
+  correct_answer: number
+}
+
 interface Props {
   session: Session
   joinUrl: string
+  questions: Question[]
 }
 
-export function LiveSessionClient({ session, joinUrl }: Props) {
+export function LiveSessionClient({ session, joinUrl, questions }: Props) {
   const router = useRouter()
   const [isPending, setIsPending] = useState(false)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
@@ -36,6 +46,25 @@ export function LiveSessionClient({ session, joinUrl }: Props) {
       if (!res.ok) {
         const body = await res.json().catch(() => ({}))
         setErrorMsg(body.error ?? '세션 시작에 실패했습니다.')
+        return
+      }
+      router.refresh()
+    } catch {
+      setErrorMsg('네트워크 오류가 발생했습니다.')
+    } finally {
+      setIsPending(false)
+    }
+  }
+
+  async function handleReset() {
+    if (!confirm('세션을 초기화하면 draft 상태로 돌아갑니다. 기존 응답 데이터는 유지됩니다. 계속하시겠습니까?')) return
+    setIsPending(true)
+    setErrorMsg(null)
+    try {
+      const res = await fetch(`/api/sessions/${session.id}/reset`, { method: 'POST' })
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}))
+        setErrorMsg(body.error ?? '초기화에 실패했습니다.')
         return
       }
       router.refresh()
@@ -104,9 +133,24 @@ export function LiveSessionClient({ session, joinUrl }: Props) {
           </button>
         )}
         {session.status === 'ended' && (
-          <span className="px-6 py-3 bg-gray-200 text-gray-600 rounded-lg font-semibold">
-            종료된 세션
-          </span>
+          <div className="flex flex-col items-center gap-3">
+            <span className="px-6 py-2 bg-gray-200 text-gray-600 rounded-lg text-sm">
+              종료된 세션
+            </span>
+            <button
+              onClick={() => router.push('/teacher/dashboard')}
+              className="px-8 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+            >
+              대시보드로 돌아가기
+            </button>
+            <button
+              onClick={handleReset}
+              disabled={isPending}
+              className="px-6 py-2 border border-gray-400 text-gray-700 rounded-lg font-medium hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isPending ? '처리 중...' : '다시하기'}
+            </button>
+          </div>
         )}
       </div>
 
@@ -115,9 +159,12 @@ export function LiveSessionClient({ session, joinUrl }: Props) {
         <p className="text-center text-red-600 text-sm">{errorMsg}</p>
       )}
 
-      {/* 실시간 순위 리더보드 (active / ended 시 표시) */}
+      {/* 실시간 응답 현황 + 순위 리더보드 */}
       {(session.status === 'active' || session.status === 'ended') && (
-        <Leaderboard leaderboard={leaderboard} isLoading={leaderboardLoading} />
+        <>
+          <LiveStatsPanel sessionId={session.id} questions={questions} />
+          <Leaderboard leaderboard={leaderboard} isLoading={leaderboardLoading} />
+        </>
       )}
     </div>
   )

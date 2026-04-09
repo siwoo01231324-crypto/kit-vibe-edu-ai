@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { useRealtimeResponses } from '@/hooks/useRealtimeResponses';
 import { ResponseChart } from '@/components/dashboard/ResponseChart';
 import { createClient } from '@/lib/supabase/client';
@@ -65,6 +66,20 @@ export function SessionDetailClient({ session, questions, initialResponses }: Pr
         <p className="mt-1 text-sm text-gray-500">
           {session.subject} · {session.grade}
         </p>
+        <div className="mt-3 flex gap-2">
+          <Link
+            href={`/teacher/sessions/${session.id}/edit`}
+            className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
+          >
+            문항 편집
+          </Link>
+          <Link
+            href={`/teacher/sessions/${session.id}/live`}
+            className="rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700"
+          >
+            라이브 시작
+          </Link>
+        </div>
       </div>
 
       {/* Participation stats */}

@@ -75,34 +75,52 @@ function QuestionForm({ initial = EMPTY_DRAFT, onSave, onCancel }: QuestionFormP
       </div>
 
       <div>
-        <label className="block text-sm font-medium mb-1">보기 (2~5개) <span className="text-red-500">*</span></label>
-        {draft.options.map((opt, idx) => (
-          <div key={idx} className="flex items-center gap-2 mb-1">
-            <input
-              type="radio"
-              name="correct_answer"
-              checked={draft.correct_answer === idx}
-              onChange={() => setDraft(d => ({ ...d, correct_answer: idx }))}
-              title="정답으로 설정"
-            />
-            <input
-              type="text"
-              value={opt}
-              onChange={e => handleOptionChange(idx, e.target.value)}
-              className="flex-1 border rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder={`보기 ${idx + 1}`}
-            />
-            {draft.options.length > 2 && (
+        <div className="flex items-center justify-between mb-2">
+          <label className="block text-sm font-medium">보기 (2~5개) <span className="text-red-500">*</span></label>
+          <span className="text-xs text-gray-400">보기를 클릭하면 정답으로 설정됩니다</span>
+        </div>
+        {draft.options.map((opt, idx) => {
+          const isCorrect = draft.correct_answer === idx
+          return (
+            <div key={idx} className="flex items-center gap-2 mb-2">
+              {/* 정답 선택 버튼 */}
               <button
                 type="button"
-                onClick={() => removeOption(idx)}
-                className="text-red-400 hover:text-red-600 text-sm px-1"
+                onClick={() => setDraft(d => ({ ...d, correct_answer: idx }))}
+                className={`shrink-0 w-7 h-7 rounded-full border-2 flex items-center justify-center text-xs font-bold transition-colors ${
+                  isCorrect
+                    ? 'border-green-500 bg-green-500 text-white'
+                    : 'border-gray-300 text-gray-400 hover:border-green-400'
+                }`}
+                title="정답으로 설정"
               >
-                삭제
+                {isCorrect ? '✓' : ['①','②','③','④','⑤'][idx]}
               </button>
-            )}
-          </div>
-        ))}
+              {/* 보기 입력 */}
+              <input
+                type="text"
+                value={opt}
+                onChange={e => handleOptionChange(idx, e.target.value)}
+                className={`flex-1 border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 transition-colors ${
+                  isCorrect
+                    ? 'border-green-400 bg-green-50 focus:ring-green-400'
+                    : 'border-gray-300 focus:ring-blue-500'
+                }`}
+                placeholder={`보기 ${idx + 1}`}
+              />
+              {draft.options.length > 2 && (
+                <button
+                  type="button"
+                  onClick={() => removeOption(idx)}
+                  className="text-gray-300 hover:text-red-400 text-lg leading-none px-1"
+                  title="삭제"
+                >
+                  ×
+                </button>
+              )}
+            </div>
+          )
+        })}
         {draft.options.length < 5 && (
           <button
             type="button"
@@ -112,7 +130,6 @@ function QuestionForm({ initial = EMPTY_DRAFT, onSave, onCancel }: QuestionFormP
             + 보기 추가
           </button>
         )}
-        <p className="text-xs text-gray-400 mt-1">라디오 버튼으로 정답을 선택하세요</p>
       </div>
 
       {formError && <p className="text-red-500 text-sm">{formError}</p>}

@@ -31,6 +31,14 @@ export function SessionSidebar({ sessions }: Props) {
 
   return (
     <aside className="w-64 shrink-0">
+      {/* 새 세션 버튼 */}
+      <Link
+        href="/teacher/sessions/new"
+        className="mb-4 flex items-center justify-center gap-1 w-full rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 transition-colors"
+      >
+        + 새 세션
+      </Link>
+
       {/* Status filter */}
       <div className="mb-4">
         <select

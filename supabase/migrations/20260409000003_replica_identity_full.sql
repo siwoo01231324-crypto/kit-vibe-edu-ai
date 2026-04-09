@@ -1,0 +1,4 @@
+-- Realtime UPDATE 이벤트 정상 전달을 위해 REPLICA IDENTITY FULL 설정
+ALTER TABLE public.sessions  REPLICA IDENTITY FULL;
+ALTER TABLE public.questions REPLICA IDENTITY FULL;
+ALTER TABLE public.responses REPLICA IDENTITY FULL;

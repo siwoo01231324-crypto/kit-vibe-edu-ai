@@ -22,8 +22,19 @@ export default async function LiveSessionPage({ params }: Props) {
 
   if (!session) notFound()
 
+  const { data: questionsRaw } = await supabase
+    .from('questions')
+    .select('id, question_order, content, options, correct_answer')
+    .eq('session_id', id)
+    .order('question_order', { ascending: true })
+
+  const questions = (questionsRaw ?? []).map((q) => ({
+    ...q,
+    options: Array.isArray(q.options) ? (q.options as string[]) : [],
+  }))
+
   const base = process.env.NEXT_PUBLIC_BASE_URL ?? ''
   const joinUrl = `${base}/join/${session.join_code}`
 
-  return <LiveSessionClient session={session} joinUrl={joinUrl} />
+  return <LiveSessionClient session={session} joinUrl={joinUrl} questions={questions ?? []} />
 }

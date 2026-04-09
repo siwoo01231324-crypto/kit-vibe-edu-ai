@@ -733,3 +733,32 @@ Issue #31 교사 대시보드 세션 목록 + 실시간 집계 차트 구현 (IU
 - class_drafts UNIQUE(session_id) — 세션당 하나의 초안만 허용, 캐시 히트 시 Claude 미호출
 - insights 없을 때 400 NO_INSIGHTS 반환 — 의존성 명시적 검증
 - react-markdown 설치 (npm install react-markdown) — 마크다운 렌더링
+
+---
+
+### Realtime 세션 종료 이벤트 디버깅 & 수정 (2026-04-09)
+
+**사용 도구**:
+- Claude Code (Claude Sonnet 4.6) — autopilot 모드, end-to-end 디버깅
+
+**주요 작업**: 교사가 세션 종료 시 학생 화면에 Realtime 이벤트가 전달되지 않는 문제 근본 원인 분석 및 수정
+
+**AI 기여 영역**:
+- `supabase/migrations/20260409000001_sessions_anon_select_ended.sql` — anon SELECT 정책 확장 (active → active OR ended)
+- `supabase/migrations/20260409000002_realtime_publications.sql` — supabase_realtime 퍼블리케이션에 sessions/questions/responses 등록
+- `supabase/migrations/20260409000003_replica_identity_full.sql` — REPLICA IDENTITY FULL 설정 (UPDATE 이벤트 전달에 필수)
+- `apps/web/src/hooks/useSessionStatus.ts` — 3초 폴링 폴백 추가 (Realtime 미수신 시 안전망)
+- `apps/web/src/app/api/sessions/[id]/reset/route.ts` — ended → draft 초기화 API
+- `apps/web/src/app/teacher/sessions/[id]/live/LiveSessionClient.tsx` — 초기화 버튼 추가
+- `apps/web/src/app/(student)/quiz/[sessionId]/page.tsx` — 점수/정답률 결과 화면, 모든 문항 완료 상태
+- `apps/web/src/app/page.tsx` — 랜딩 페이지 네비게이션 링크
+- `apps/web/src/components/dashboard/SessionDetailClient.tsx` — 문항 편집/라이브 시작 링크
+
+**근본 원인 3가지**:
+1. `supabase_realtime` 퍼블리케이션에 테이블 미등록 (0개)
+2. sessions 테이블 REPLICA IDENTITY = DEFAULT → FULL로 변경 필요
+3. anon이 ended 세션을 SELECT 불가 → Realtime이 이벤트 드롭
+
+**인간 주도 영역**:
+- 최종 코드 검토 및 커밋
+- 실제 브라우저에서 Realtime 동작 검증
