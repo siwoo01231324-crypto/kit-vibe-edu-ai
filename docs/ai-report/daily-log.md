@@ -309,6 +309,28 @@
 ### 오늘의 인사이트
 - **AI 가 작성한 통합 테스트는 spec 컬럼명을 정확히 지키지 않을 수 있다.** worker-3 가 `responses.content` 같은 가상의 컬럼을 사용했고, 런타임 검증 단계에서야 발견됨. → **로컬 DB 가 없으면 끝까지 잡히지 않는 결함**. 다음 이슈부터는 코드 작성 단계에서 dev-spec DDL grep 으로 컬럼 정합성 자가 검증을 강제할 것.
 - **`adminClient.auth.signInWithPassword` 사이드이펙트** — service_role 클라이언트로 sign-in 호출하면 그 세션이 user JWT 로 바뀐다는 것은 SDK 문서에 명시되지 않은 위험. 별도 throwaway 클라이언트 패턴이 안전.
+
+---
+
+### 추가 작업: 이슈 #32 학생 참여 화면 (worker-2)
+
+#### 사용 도구
+- Claude Code (Claude Sonnet 4.6) — 학생 참여 화면 TDD 구현
+
+#### 구현 내용
+- `apps/web/src/app/(student)/join/page.tsx` — join_code + 닉네임 입력 폼
+- `apps/web/src/app/(student)/join/[code]/page.tsx` — QR 스캔 URL 진입 (code pre-filled)
+- `apps/web/src/app/(student)/waiting/[sessionId]/page.tsx` — 대기 화면 + Realtime 구독
+- `apps/web/src/hooks/useSessionStatus.ts` — Supabase Realtime postgres_changes 구독 훅
+- `apps/web/tests/integration/student-join.test.ts` — 통합 테스트 3종 (TEST-IU1-I01·I02·I03)
+
+#### AI 기여 영역
+- TDD 흐름: 통합 테스트 작성(RED) → 구현(GREEN)
+- Realtime 구독 패턴 (postgres_changes + cleanup)
+- sessionStorage 기반 익명 학생 상태 관리
+
+#### 인간 주도 영역
+- 최종 코드 검토 및 커밋 (불변식 2)
 - **Supabase CLI v2.88 신키(`sb_publishable_*`/`sb_secret_*`)** 는 PostgREST 의 PG role claim 을 자동 매핑하지 않아 RLS 가 동작하지 않음. legacy JWT 키 (`role=anon`/`role=service_role` claim 포함) 를 명시적으로 사용해야 함. SDK 문서 업데이트 필요.
 
 ---
