@@ -401,6 +401,24 @@
 
 ---
 
+### 이슈 #28 — 세션 생성 API + 폼
+
+**사용 도구**:
+- Claude Code (Claude Sonnet 4.6) — worker-1 에이전트, TDD 사이클 구현
+
+**주요 작업**: POST /api/sessions 엔드포인트 + 세션 생성 폼 UI 구현
+
+**AI 기여 영역**:
+- `apps/web/src/app/api/sessions/route.ts` — POST 핸들러 (zod 검증, auth 확인, generateUniqueJoinCode, sessions INSERT, 201 반환)
+- `apps/web/src/app/teacher/sessions/new/page.tsx` — 클라이언트 폼 컴포넌트 (title/subject/grade 입력, fetch POST, 성공 시 /teacher/sessions/[id]/edit 리다이렉트)
+- `apps/web/tests/integration/api/sessions-create.test.ts` — 통합 테스트 3개 (인증 INSERT 성공, anon 거부, RLS 격리)
+- `apps/web/src/app/api/sessions/.ai.md`, `apps/web/src/app/teacher/sessions/.ai.md` 신규 작성
+
+**인간 주도 영역**:
+- 최종 코드 검토 및 커밋 승인 (불변식 2)
+
+---
+
 ### 이슈 #29 — 퀴즈 문항 CRUD + 편집 UI
 
 **사용 도구**:
