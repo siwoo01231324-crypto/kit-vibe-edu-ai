@@ -482,6 +482,39 @@
 
 ---
 
+### 이슈 #31 — 교사 대시보드 세션 목록 + 실시간 집계 차트 (IU-03)
+
+#### 사용 도구
+- Claude Code (Claude Sonnet 4.6) — executor 단일 에이전트, TDD 사이클 직접 구현
+
+#### 주요 작업
+Issue #31 교사 대시보드 세션 목록 + 실시간 집계 차트 구현 (IU-03)
+
+**프롬프트 1**: `/executor` — TDD: RED 테스트 3종 선작성 → GREEN 구현 → 문서화
+- AI 응답 요약:
+  1. RED: `dashboard-fetch.test.ts` (TEST-IU3-I01 RLS 격리 + I02 Promise.all fetch) + `useRealtimeResponses.test.ts` (TEST-IU3-I03 INSERT 콜백) + `ResponseChart.test.tsx` (DOM 검증)
+  2. GREEN: `src/lib/dashboard.ts` (`loadDashboardData` — Promise.all 3-way 병렬 fetch + DB→aggregate 타입 매핑), `src/hooks/useRealtimeResponses.ts` (channel `session-responses-{id}`, INSERT 구독, participantCount useMemo), `src/components/dashboard/ResponseChart.tsx` (CSS flex 바만, Chart.js 금지), `src/components/dashboard/SessionSidebar.tsx` (status filter select), `src/components/dashboard/SessionDetailClient.tsx`
+  3. Server Component: `app/teacher/sessions/[id]/page.tsx` (auth + .eq('teacher_id') + loadDashboardData → SessionDetailClient)
+  4. Dashboard 페이지: `app/teacher/dashboard/page.tsx` 교체 (SessionSidebar + 안내 패널)
+  5. `.ai.md` 4개 갱신, `daily-log.md` 기록
+- 채택 여부: 채택
+- 수정 내용: useRealtimeResponses 타입을 ResponseWithNickname으로 확장 (participantCount 계산용)
+
+#### AI 기여 영역
+- TDD 사이클 전체 (RED 테스트 작성 → GREEN 구현) 자동화
+- `loadDashboardData`: Promise.all 병렬 fetch + selected_answer → answer 매핑 헬퍼
+- `useRealtimeResponses`: Realtime 채널 구독 패턴 (`useSessionStatus.ts` 패턴 준수)
+- `ResponseChart`: 순수 CSS flex div 바 차트 (차트 라이브러리 0개 추가)
+- `SessionSidebar` / `SessionDetailClient` 와이어링
+- Server Component 소유권 검증 (`.eq('teacher_id', user.id)` + `notFound()`)
+- `.ai.md` 4개 디렉토리 최신화
+
+#### 인간 주도 영역
+- 최종 코드 검토 후 커밋 승인 (불변식 2)
+- 로컬 Supabase 실행 후 Realtime 동작 수동 검증 예정
+
+---
+
 ## 04/10 (금) AI 활용 로그
 
 ### 이슈 #25 — 점수 계산 + 닉네임 검증 유틸 (TDD)
