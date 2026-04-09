@@ -462,6 +462,26 @@
 
 ---
 
+### 이슈 #37 — AI 인사이트 생성 API + InsightPanel (IU-02)
+
+**사용 도구**:
+- Claude Code (Claude Sonnet 4.6) — worker-3 에이전트, TDD 사이클 구현
+
+**주요 작업**: POST /api/insights/generate 라우트 + InsightPanel 컴포넌트 + 통합 테스트 4종
+
+**AI 기여 영역**:
+- `apps/web/src/app/api/insights/generate/route.ts` — 인증/소유권/캐시/집계/Claude 호출/파싱/저장 전체 흐름
+- `apps/web/src/components/dashboard/InsightPanel.tsx` — 취약 개념·강점 개념·다음 수업 포커스 카드 3종 (Tailwind)
+- `apps/web/tests/integration/api/insights-generate.test.ts` — TEST-IU2-I01~I04 (Vitest + vi.mock, vi.hoisted 패턴)
+- `apps/web/src/app/api/insights/.ai.md`, `apps/web/src/components/dashboard/.ai.md` 신규 작성
+
+**인간 주도 영역**:
+- 최종 코드 검토 후 커밋 승인 (불변식 2)
+
+**테스트 결과**: 4/4 통과 (TEST-IU2-I01 200 성공, I02 캐시 반환, I03 403 권한 거부, I04 500 파싱 실패)
+
+---
+
 ## 04/10 (금) AI 활용 로그
 
 ### 이슈 #25 — 점수 계산 + 닉네임 검증 유틸 (TDD)
