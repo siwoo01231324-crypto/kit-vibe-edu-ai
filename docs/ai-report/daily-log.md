@@ -482,6 +482,29 @@
 
 ---
 
+### 이슈 #30 — 세션 활성화·종료 API + QR 코드 생성
+
+**사용 도구**:
+- Claude Code (Claude Sonnet 4.6) — executor 단일 에이전트, TDD 사이클 구현
+
+**주요 작업**: 세션 상태 전이 API(activate/end) + QR 코드 화면 + 라이브 세션 페이지 구현
+
+**AI 기여 영역**:
+- `apps/web/src/app/api/sessions/[id]/activate/route.ts` — draft → active 전이 (소유권·상태 가드, started_at 기록)
+- `apps/web/src/app/api/sessions/[id]/end/route.ts` — active → ended 전이 (소유권·상태 가드, ended_at 기록)
+- `apps/web/src/components/shared/QRCodeDisplay.tsx` — Client Component, qrcode 패키지로 QR 이미지 생성 + PNG 다운로드
+- `apps/web/src/app/teacher/sessions/[id]/live/page.tsx` — 서버 컴포넌트, 세션 데이터 조회 + joinUrl 생성
+- `apps/web/src/app/teacher/sessions/[id]/live/LiveSessionClient.tsx` — 클라이언트 컴포넌트, activate/end API 호출 + QR 렌더링
+- `apps/web/src/app/teacher/sessions/[id]/edit/page.tsx` — 라이브 세션 열기 링크 추가
+- `apps/web/tests/integration/api/session-lifecycle.test.ts` — 5개 테스트케이스 (draft→active, active→ended, RLS 소유권 차단, 멱등성, 전이 가드)
+- `.ai.md` 신규 작성 (activate/, end/, live/)
+- `apps/web/.env.local` — NEXT_PUBLIC_BASE_URL 추가
+
+**인간 주도 영역**:
+- 최종 코드 검토 후 커밋 승인 (불변식 2)
+
+---
+
 ## 04/10 (금) AI 활용 로그
 
 ### 이슈 #25 — 점수 계산 + 닉네임 검증 유틸 (TDD)
