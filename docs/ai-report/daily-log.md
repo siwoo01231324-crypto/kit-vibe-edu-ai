@@ -344,6 +344,26 @@
 
 ---
 
+### 이슈 #26 — join_code 생성기 + 충돌 재시도 (lib/join-code)
+
+**사용 도구**:
+- Claude Code (Claude Sonnet 4.6) — executor 에이전트, TDD 사이클 구현
+
+**주요 작업**: 6자리 대문자 영숫자 join_code 생성 + 활성 세션 중복 검사 + 5회 재시도 로직
+
+**AI 기여 영역**:
+- `apps/web/src/lib/join-code.ts` — `generateJoinCode()` (순수 함수, Math.random + CHARS 매핑), `generateUniqueJoinCode(supabase)` (active 세션 중복 검사 루프, MAX_RETRY=5)
+- `apps/web/tests/unit/join-code.test.ts` — 단위 5개 (길이/형식/샘플링), 통합 3개 (빈DB 성공, 충돌1회 재시도, 5회 충돌 에러)
+- `apps/web/src/lib/.ai.md` — join-code.ts 항목 추가
+
+**인간 주도 영역**:
+- export 이름 고정 요건 확인 (#28 세션 생성 API 호환)
+- 최종 검토 후 커밋 승인 (불변식 2)
+
+**테스트 결과**: 5/5 통과
+
+---
+
 ## 04/10 (금) AI 활용 로그
 
 ### 사용 도구
