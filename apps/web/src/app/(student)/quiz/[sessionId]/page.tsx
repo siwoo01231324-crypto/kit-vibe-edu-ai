@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { calculateScore } from '@/lib/scoring';
+import { validateThumbsType } from '@/lib/validation';
 import { useStudentQuestions } from '@/hooks/useStudentQuestions';
 import { useSessionStatus } from '@/hooks/useSessionStatus';
 import type { Database } from '@/types/database';
@@ -23,6 +24,8 @@ export default function QuizPage() {
   const [nickname, setNickname] = useState('');
   const [answeredQuestionIds, setAnsweredQuestionIds] = useState<Set<string>>(new Set());
   const [feedback, setFeedback] = useState<Feedback | null>(null);
+  const [thumbsSubmitted, setThumbsSubmitted] = useState(false);
+  const [thumbsError, setThumbsError] = useState<string | null>(null);
   const questionStartAt = useRef<number>(Date.now());
 
   const { questions, isLoading } = useStudentQuestions(sessionId);
@@ -103,6 +106,30 @@ export default function QuizPage() {
     }, 1500);
   }
 
+  // 따봉 피드백 제출
+  async function handleThumbsFeedback(type: 'up' | 'down') {
+    if (!validateThumbsType(type)) {
+      console.error('Invalid thumbs type');
+      return;
+    }
+    if (thumbsSubmitted) return; // 중복 가드
+
+    setThumbsSubmitted(true);
+    setThumbsError(null);
+    const supabase = createClient();
+    const { error } = await supabase.from('thumbs_feedback').insert({
+      session_id: sessionId,
+      nickname,
+      type,
+    });
+
+    if (error) {
+      console.error('thumbs_feedback INSERT 실패:', error.message);
+      setThumbsSubmitted(false); // 실패 시 재시도 허용
+      setThumbsError('피드백 전송에 실패했습니다. 다시 시도해주세요.');
+    }
+  }
+
   // 세션 종료
   if (status === 'ended') {
     return (
@@ -110,6 +137,37 @@ export default function QuizPage() {
         <div className="text-center">
           <p className="text-2xl font-bold text-gray-800 mb-2">퀴즈가 종료되었습니다</p>
           <p className="text-gray-500 mb-6">수고하셨습니다!</p>
+
+          {/* 따봉 피드백 */}
+          <div className="mb-6">
+            <p className="text-sm text-gray-500 mb-3">수업이 어땠나요?</p>
+            {thumbsSubmitted ? (
+              <p className="text-sm font-medium text-green-600">피드백을 보내주셔서 감사합니다!</p>
+            ) : (
+              <div className="flex justify-center gap-4">
+                <button
+                  onClick={() => handleThumbsFeedback('up')}
+                  disabled={thumbsSubmitted}
+                  className="text-4xl rounded-xl border-2 border-gray-200 bg-white px-6 py-3 hover:border-green-400 hover:bg-green-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  aria-label="좋아요"
+                >
+                  👍
+                </button>
+                <button
+                  onClick={() => handleThumbsFeedback('down')}
+                  disabled={thumbsSubmitted}
+                  className="text-4xl rounded-xl border-2 border-gray-200 bg-white px-6 py-3 hover:border-red-400 hover:bg-red-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  aria-label="별로예요"
+                >
+                  👎
+                </button>
+              </div>
+            )}
+            {thumbsError && (
+              <p className="mt-2 text-xs text-red-500">{thumbsError}</p>
+            )}
+          </div>
+
           <button
             onClick={() => router.push('/join')}
             className="rounded-lg bg-blue-600 px-6 py-2 text-white hover:bg-blue-700 transition-colors"
