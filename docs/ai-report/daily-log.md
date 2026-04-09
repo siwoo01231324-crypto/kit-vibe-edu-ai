@@ -401,6 +401,27 @@
 
 ---
 
+### 이슈 #29 — 퀴즈 문항 CRUD + 편집 UI
+
+**사용 도구**:
+- Claude Code (Claude Sonnet 4.6) — worker-1 에이전트, TDD 사이클 구현
+
+**주요 작업**: 퀴즈 문항 CRUD 훅 + 편집 UI 구현
+
+**AI 기여 영역**:
+- `apps/web/src/lib/validation.ts` 확장 — `validateQuestion({content, options, correct_answer})` 추가 (content 비어있지 않음, options 2~5개, correct_answer 범위 검사)
+- `apps/web/src/hooks/useQuestions.ts` — fetchQuestions, addQuestion, updateQuestion, deleteQuestion, moveUp, moveDown 훅
+- `apps/web/src/app/teacher/sessions/[id]/edit/page.tsx` — 서버 컴포넌트 (소유권 확인 + 초기 데이터 fetch)
+- `apps/web/src/app/teacher/sessions/[id]/edit/QuestionEditor.tsx` — 클라이언트 컴포넌트 (문항 카드 목록, 인라인 편집 폼, 상/하 이동 버튼)
+- `apps/web/tests/unit/validate-question.test.ts` — 단위 테스트 12개 (12/12 통과)
+- `apps/web/tests/integration/questions-crud.test.ts` — 통합 테스트 4개 (RLS 검증, Supabase 미기동 시 skip)
+- `apps/web/src/hooks/.ai.md`, `apps/web/src/app/teacher/sessions/.ai.md` 작성/갱신
+
+**인간 주도 영역**:
+- 최종 코드 검토 및 커밋 승인 (불변식 2)
+
+---
+
 ## 04/10 (금) AI 활용 로그
 
 ### 이슈 #25 — 점수 계산 + 닉네임 검증 유틸 (TDD)
