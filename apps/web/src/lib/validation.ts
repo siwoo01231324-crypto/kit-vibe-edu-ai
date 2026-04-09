@@ -10,3 +10,29 @@
 export function validateNickname(nickname: string): boolean {
   return /^[가-힣a-zA-Z0-9_]{2,12}$/.test(nickname);
 }
+
+export interface QuestionInput {
+  content: string;
+  options: string[];
+  correct_answer: number;
+}
+
+/**
+ * 퀴즈 문항 유효성을 검사한다.
+ *
+ * - content: 비어있지 않아야 함
+ * - options: 2~5개 항목, 각 항목 비어있지 않아야 함
+ * - correct_answer: 0 이상 options.length-1 이하의 정수
+ *
+ * @param q - 검사할 문항 객체
+ * @returns 유효하면 true, 아니면 false
+ */
+export function validateQuestion(q: QuestionInput): boolean {
+  if (!q.content || q.content.trim().length === 0) return false;
+  if (!Array.isArray(q.options)) return false;
+  if (q.options.length < 2 || q.options.length > 5) return false;
+  if (q.options.some(o => !o || o.trim().length === 0)) return false;
+  if (!Number.isInteger(q.correct_answer)) return false;
+  if (q.correct_answer < 0 || q.correct_answer > q.options.length - 1) return false;
+  return true;
+}
