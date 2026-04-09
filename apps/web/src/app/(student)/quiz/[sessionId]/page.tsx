@@ -6,6 +6,8 @@ import { createClient } from '@/lib/supabase/client';
 import { calculateScore } from '@/lib/scoring';
 import { useStudentQuestions } from '@/hooks/useStudentQuestions';
 import { useSessionStatus } from '@/hooks/useSessionStatus';
+import { useLeaderboard } from '@/hooks/useLeaderboard';
+import { Leaderboard } from '@/components/quiz/Leaderboard';
 import type { Database } from '@/types/database';
 
 type QuestionRow = Database['public']['Tables']['questions']['Row'];
@@ -27,6 +29,7 @@ export default function QuizPage() {
 
   const { questions, isLoading } = useStudentQuestions(sessionId);
   const { status } = useSessionStatus(sessionId);
+  const { leaderboard, isLoading: leaderboardLoading } = useLeaderboard(sessionId);
 
   // sessionStorage 가드 — waiting 페이지와 동일 패턴
   useEffect(() => {
@@ -106,16 +109,27 @@ export default function QuizPage() {
   // 세션 종료
   if (status === 'ended') {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-gray-50 p-4">
-        <div className="text-center">
-          <p className="text-2xl font-bold text-gray-800 mb-2">퀴즈가 종료되었습니다</p>
-          <p className="text-gray-500 mb-6">수고하셨습니다!</p>
-          <button
-            onClick={() => router.push('/join')}
-            className="rounded-lg bg-blue-600 px-6 py-2 text-white hover:bg-blue-700 transition-colors"
-          >
-            처음으로
-          </button>
+      <main className="flex min-h-screen flex-col items-center bg-gray-50 p-4 py-10">
+        <div className="w-full max-w-md space-y-6">
+          {/* 개인 결과 요약 */}
+          <div className="rounded-2xl bg-white p-8 shadow-md text-center">
+            <p className="text-3xl mb-2">🏆</p>
+            <p className="text-2xl font-bold text-gray-800 mb-2">퀴즈가 종료되었습니다</p>
+            <p className="text-gray-500 mb-6">수고하셨습니다!</p>
+            <button
+              onClick={() => router.push('/join')}
+              className="rounded-lg bg-blue-600 px-6 py-2 text-white hover:bg-blue-700 transition-colors"
+            >
+              처음으로
+            </button>
+          </div>
+
+          {/* 리더보드 */}
+          <Leaderboard
+            leaderboard={leaderboard}
+            currentNickname={nickname}
+            isLoading={leaderboardLoading}
+          />
         </div>
       </main>
     );
