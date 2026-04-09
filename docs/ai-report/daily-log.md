@@ -364,6 +364,27 @@
 
 ---
 
+### 이슈 #27 — 응답 집계 유틸 (lib/aggregate)
+
+**사용 도구**:
+- Claude Code (Claude Sonnet 4.6) — executor 에이전트 + 직접 구현, TDD 사이클
+
+**주요 작업**: 교사 대시보드(IU-03) + AI 인사이트(IU-02) 공용 집계 함수 3종 구현
+
+**AI 기여 영역**:
+- `apps/web/src/lib/aggregate.ts` — `calculateCorrectRate`, `groupByQuestion`, `aggregateResponses` + 내부 헬퍼 `mean`, `mostFrequent`
+- `apps/web/tests/unit/aggregate.test.ts` — 14개 단위 테스트 (correct_rate/option_distribution/avg_response_time/wrong_pattern 검증)
+- `apps/web/src/lib/.ai.md` — aggregate.ts 항목 추가
+- 타입 정의: `Response`, `Question`, `GroupedQuestion`, `AggregatedStat` (export)
+
+**인간 주도 영역**:
+- `AggregatedStat` 타입이 #36 `buildInsightsPrompt` 입력과 일치해야 한다는 호환성 요건 지시
+- 최종 검토 후 커밋 승인 (불변식 2)
+
+**테스트 결과**: 14/14 통과
+
+---
+
 ## 04/10 (금) AI 활용 로그
 
 ### 이슈 #25 — 점수 계산 + 닉네임 검증 유틸 (TDD)
