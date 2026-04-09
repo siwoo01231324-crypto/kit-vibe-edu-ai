@@ -27,6 +27,18 @@ export interface QuestionInput {
  * @param q - 검사할 문항 객체
  * @returns 유효하면 true, 아니면 false
  */
+/**
+ * 따봉 피드백 타입 유효성을 검사한다.
+ *
+ * 허용 값: 'up' | 'down'
+ *
+ * @param type - 검사할 타입 문자열
+ * @returns 유효하면 true, 아니면 false
+ */
+export function validateThumbsType(type: string): boolean {
+  return type === 'up' || type === 'down';
+}
+
 export function validateQuestion(q: QuestionInput): boolean {
   if (!q.content || q.content.trim().length === 0) return false;
   if (!Array.isArray(q.options)) return false;
