@@ -672,3 +672,34 @@ Issue #31 교사 대시보드 세션 목록 + 실시간 집계 차트 구현 (IU
 - `responses` RLS: anon INSERT 전용 → 정답/점수 전부 로컬 계산 (`isCorrect = choiceIndex === correct_answer`, `calculateScore` 재사용)
 - 중복 응답 차단: `answeredQuestionIds: Set<string>` 즉시 추가 → INSERT 실패 시만 롤백
 - Realtime 채널명 dev-spec §4.3 준수: `session:{sessionId}:questions`
+
+---
+
+### 이슈 #38 — 수업 초안 생성 API + 마크다운 미리보기
+
+**사용 도구**:
+- Claude Code (Claude Sonnet 4.6) — executor 에이전트, TDD 사이클 구현
+
+**주요 작업**: 교사가 인사이트 기반으로 다음 수업 마크다운 초안을 생성하고 클립보드에 복사하는 기능 구현
+
+**주요 프롬프트**:
+- "buildDraftPrompt + callClaude를 이용해 POST /api/class-draft/generate 구현, 인증/소유권/캐시 체크 포함"
+- "react-markdown으로 마크다운 렌더링하는 ClassDraftPanel 컴포넌트 구현, 복사 버튼 포함"
+
+**AI 기여 영역**:
+- `apps/web/src/app/api/class-draft/generate/route.ts` — POST 엔드포인트 (auth/소유권/insights 존재/캐시 체크 → Claude 호출 → DB 저장)
+- `apps/web/src/lib/clipboard.ts` — copyToClipboard 유틸 (navigator.clipboard.writeText 래핑)
+- `apps/web/src/components/dashboard/ClassDraftPanel.tsx` — react-markdown 렌더링 + 복사 버튼 (2초 "복사됨!" 피드백)
+- `apps/web/src/app/teacher/sessions/[id]/insights/page.tsx` — 수업 초안 생성 버튼 + 에러 처리 + ClassDraftPanel 조건부 렌더링
+- `apps/web/tests/integration/api/class-draft-generate.test.ts` — 통합 테스트 4종 (TEST-IU4-I01~I04)
+- `apps/web/tests/unit/lib/clipboard.test.ts` — 단위 테스트 2종 (TEST-IU4-U03 포함)
+- `apps/web/src/app/api/class-draft/.ai.md` — API 디렉토리 문서
+
+**인간 주도 영역**:
+- 최종 코드 검토 및 커밋 (불변식 2)
+- Supabase 로컬 환경에서 E2E 검증
+
+**핵심 설계 결정**:
+- class_drafts UNIQUE(session_id) — 세션당 하나의 초안만 허용, 캐시 히트 시 Claude 미호출
+- insights 없을 때 400 NO_INSIGHTS 반환 — 의존성 명시적 검증
+- react-markdown 설치 (npm install react-markdown) — 마크다운 렌더링
