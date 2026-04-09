@@ -28,6 +28,7 @@ export default function QuizPage() {
   const [feedback, setFeedback] = useState<Feedback | null>(null);
   const [thumbsSubmitted, setThumbsSubmitted] = useState(false);
   const [thumbsError, setThumbsError] = useState<string | null>(null);
+  const [thumbsComment, setThumbsComment] = useState('');
   const [totalScore, setTotalScore] = useState(0);
   const [correctCount, setCorrectCount] = useState(0);
   const questionStartAt = useRef<number>(Date.now());
@@ -130,6 +131,7 @@ export default function QuizPage() {
       session_id: sessionId,
       nickname,
       type,
+      comment: thumbsComment.trim() || null,
     });
 
     if (error) {
@@ -176,21 +178,31 @@ export default function QuizPage() {
               {thumbsSubmitted ? (
                 <p className="text-sm font-medium text-green-600">피드백을 보내주셔서 감사합니다!</p>
               ) : (
-                <div className="flex justify-center gap-4">
-                  <button
-                    onClick={() => handleThumbsFeedback('up')}
-                    className="text-4xl rounded-xl border-2 border-gray-200 bg-white px-6 py-3 hover:border-green-400 hover:bg-green-50 transition-colors"
-                    aria-label="좋아요"
-                  >
-                    👍
-                  </button>
-                  <button
-                    onClick={() => handleThumbsFeedback('down')}
-                    className="text-4xl rounded-xl border-2 border-gray-200 bg-white px-6 py-3 hover:border-red-400 hover:bg-red-50 transition-colors"
-                    aria-label="별로예요"
-                  >
-                    👎
-                  </button>
+                <div className="space-y-3">
+                  <div className="flex justify-center gap-4">
+                    <button
+                      onClick={() => handleThumbsFeedback('up')}
+                      className="text-4xl rounded-xl border-2 border-gray-200 bg-white px-6 py-3 hover:border-green-400 hover:bg-green-50 transition-colors"
+                      aria-label="좋아요"
+                    >
+                      👍
+                    </button>
+                    <button
+                      onClick={() => handleThumbsFeedback('down')}
+                      className="text-4xl rounded-xl border-2 border-gray-200 bg-white px-6 py-3 hover:border-red-400 hover:bg-red-50 transition-colors"
+                      aria-label="별로예요"
+                    >
+                      👎
+                    </button>
+                  </div>
+                  <textarea
+                    value={thumbsComment}
+                    onChange={(e) => setThumbsComment(e.target.value)}
+                    placeholder="어디가 어려웠나요? (선택)"
+                    maxLength={200}
+                    rows={2}
+                    className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 placeholder-gray-400 resize-none focus:outline-none focus:border-blue-300"
+                  />
                 </div>
               )}
               {thumbsError && (

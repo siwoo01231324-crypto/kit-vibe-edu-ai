@@ -79,6 +79,14 @@ export function SessionDetailClient({ session, questions, initialResponses }: Pr
           >
             라이브 시작
           </Link>
+          {session.status === 'ended' && (
+            <Link
+              href={`/teacher/sessions/${session.id}/insights`}
+              className="rounded-lg bg-purple-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-purple-700"
+            >
+              AI 인사이트
+            </Link>
+          )}
         </div>
       </div>
 
