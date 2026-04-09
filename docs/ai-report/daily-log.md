@@ -373,15 +373,31 @@
 
 **AI 기여 영역**:
 - `apps/web/src/lib/aggregate.ts` — `calculateCorrectRate`, `groupByQuestion`, `aggregateResponses` + 내부 헬퍼 `mean`, `mostFrequent`
-- `apps/web/tests/unit/aggregate.test.ts` — 14개 단위 테스트 (correct_rate/option_distribution/avg_response_time/wrong_pattern 검증)
-- `apps/web/src/lib/.ai.md` — aggregate.ts 항목 추가
+- `apps/web/tests/unit/aggregate.test.ts` — 14개 단위 테스트
 - 타입 정의: `Response`, `Question`, `GroupedQuestion`, `AggregatedStat` (export)
 
+**테스트 결과**: 14/14 통과
+
+---
+
+### 이슈 #36 — Claude SDK 클라이언트 + 프롬프트 모듈 (insights/class-draft)
+
+**사용 도구**:
+- Claude Code (Claude Sonnet 4.6) — executor 에이전트, TDD 사이클 구현
+
+**주요 작업**: `@anthropic-ai/sdk` 래퍼 + zod 스키마 기반 InsightSchema + 프롬프트 빌더 2종 구현
+
+**AI 기여 영역**:
+- `apps/web/src/lib/anthropic.ts` — `callClaude({system, user, maxTokens})` 래퍼 (모델 `claude-sonnet-4-6`, 429/5xx 1회 재시도)
+- `apps/web/src/lib/prompts/insights.ts` — `InsightSchema` (zod), `buildInsightsPrompt`, `parseInsightResponse`
+- `apps/web/src/lib/prompts/class-draft.ts` — `buildDraftPrompt(insights, subject, grade)`
+- `apps/web/tests/unit/prompts.test.ts` — 7개 단위 테스트
+
 **인간 주도 영역**:
-- `AggregatedStat` 타입이 #36 `buildInsightsPrompt` 입력과 일치해야 한다는 호환성 요건 지시
+- `ANTHROPIC_API_KEY` 환경변수 발급 및 `.env.local` 주입 (수동)
 - 최종 검토 후 커밋 승인 (불변식 2)
 
-**테스트 결과**: 14/14 통과
+**테스트 결과**: 7/7 통과
 
 ---
 
