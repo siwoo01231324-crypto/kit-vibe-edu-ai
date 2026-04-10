@@ -762,3 +762,18 @@ Issue #31 교사 대시보드 세션 목록 + 실시간 집계 차트 구현 (IU
 **인간 주도 영역**:
 - 최종 코드 검토 및 커밋
 - 실제 브라우저에서 Realtime 동작 검증
+
+---
+
+### 따봉 피드백 UI 제거 (2026-04-10)
+
+**사용 도구**:
+- Claude Code (Claude Sonnet 4.6)
+
+**주요 작업**: 교사 세션 상세 화면에서 따봉(👍/👎) 피드백 집계 UI 제거 (#60)
+
+**AI 기여 영역**:
+- `apps/web/src/components/dashboard/SessionDetailClient.tsx` — `thumbsStats` state, `thumbs_feedback` fetch useEffect, 👍/👎 span 제거 및 불필요 import 정리
+
+**인간 주도 영역**:
+- 최종 검토 및 커밋 승인

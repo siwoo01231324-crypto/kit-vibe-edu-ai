@@ -1,10 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRealtimeResponses } from '@/hooks/useRealtimeResponses';
 import { ResponseChart } from '@/components/dashboard/ResponseChart';
-import { createClient } from '@/lib/supabase/client';
 import type { Question, Response } from '@/lib/aggregate';
 import type { Database } from '@/types/database';
 
@@ -33,23 +31,6 @@ export function SessionDetailClient({ session, questions, initialResponses }: Pr
     session.id,
     initialResponses
   );
-
-  const [thumbsStats, setThumbsStats] = useState({ up: 0, down: 0 });
-
-  useEffect(() => {
-    const supabase = createClient();
-    supabase
-      .from('thumbs_feedback')
-      .select('type')
-      .eq('session_id', session.id)
-      .then(({ data }) => {
-        if (!data) return;
-        setThumbsStats({
-          up: data.filter((r) => r.type === 'up').length,
-          down: data.filter((r) => r.type === 'down').length,
-        });
-      });
-  }, [session.id]);
 
   return (
     <div className="flex-1 min-w-0">
@@ -98,12 +79,7 @@ export function SessionDetailClient({ session, questions, initialResponses }: Pr
         <span className="text-sm text-gray-500">
           총 응답 {responses.length}개
         </span>
-        <span className="text-sm font-medium text-green-700 rounded-full bg-green-100 border border-green-300 px-3 py-0.5">
-          👍 {thumbsStats.up}명
-        </span>
-        <span className="text-sm font-medium text-red-700 rounded-full bg-red-100 border border-red-300 px-3 py-0.5">
-          👎 {thumbsStats.down}명
-        </span>
+
       </div>
 
       {/* Response chart */}
