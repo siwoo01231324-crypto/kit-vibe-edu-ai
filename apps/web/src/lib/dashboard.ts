@@ -46,14 +46,16 @@ export async function loadDashboardData(
     id: q.id,
     content: q.content,
     options: (q.options as string[]) ?? [],
+    correct_answer: q.correct_answer ?? undefined,
   }))
 
   // Map DB row's selected_answer → aggregate.ts Response.answer
-  const responses: Response[] = (responsesResult.data ?? []).map((r) => ({
+  const responses = (responsesResult.data ?? []).map((r) => ({
     question_id: r.question_id,
     answer: r.selected_answer,
     is_correct: r.is_correct,
     response_time_ms: r.response_time_ms,
+    nickname: r.nickname,
   }))
 
   return {

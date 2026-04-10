@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRealtimeResponses } from '@/hooks/useRealtimeResponses';
 import { ResponseChart } from '@/components/dashboard/ResponseChart';
 import type { Question, Response } from '@/lib/aggregate';
+import { calculateCorrectRate } from '@/lib/aggregate';
 import type { Database } from '@/types/database';
 
 type SessionRow = Database['public']['Tables']['sessions']['Row'];
@@ -39,6 +40,7 @@ export function SessionDetailClient({ session, questions, initialResponses, thum
   );
 
   const withComment = (thumbsFeedbacks ?? []).filter((f) => f.comment);
+  const correctRate = calculateCorrectRate(responses);
 
   return (
     <div className="flex-1 min-w-0">
@@ -84,14 +86,11 @@ export function SessionDetailClient({ session, questions, initialResponses, thum
         <span className="text-sm font-medium text-slate-700">
           👥 {participantCount}명 참여중
         </span>
-        <span className="text-sm text-slate-500">
-          총 응답 {responses.length}개
-        </span>
       </div>
 
       {/* 학생 피드백 */}
       {thumbsFeedbacks && thumbsFeedbacks.length > 0 && (
-        <div className="rounded-2xl bg-white border border-slate-200 shadow-sm p-5 mb-6 space-y-3">
+        <div className="rounded-2xl bg-white border border-slate-200 shadow-sm p-5 mb-4 space-y-3">
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-bold text-slate-700">학생 피드백</h3>
             <span className="text-xs text-slate-400">{thumbsFeedbacks.length}명 응답</span>
@@ -108,6 +107,22 @@ export function SessionDetailClient({ session, questions, initialResponses, thum
           ) : (
             <p className="text-xs text-slate-400">작성된 코멘트가 없습니다.</p>
           )}
+        </div>
+      )}
+
+      {/* 전체 응답 통계 */}
+      {responses.length > 0 && (
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+          {[
+            { label: '참여자 수', value: `${participantCount}명` },
+            { label: '정답률', value: `${Math.round(correctRate * 100)}%`, color: 'text-blue-600' },
+            { label: '오답률', value: `${Math.round((1 - correctRate) * 100)}%`, color: 'text-red-500' },
+          ].map(({ label, value, color }) => (
+            <div key={label} className="rounded-xl bg-white border border-slate-200 p-3 text-center shadow-sm">
+              <p className="text-xs text-slate-500 mb-1">{label}</p>
+              <p className={`text-xl font-bold ${color ?? 'text-slate-800'}`}>{value}</p>
+            </div>
+          ))}
         </div>
       )}
 
