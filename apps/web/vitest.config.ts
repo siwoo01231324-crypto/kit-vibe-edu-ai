@@ -2,11 +2,17 @@ import { defineConfig } from 'vitest/config';
 import { loadEnv } from 'vite';
 import path from 'node:path';
 
+// React 19 + jsx: "preserve" 환경에서 테스트 시 automatic JSX transform 필요
+// @vitejs/plugin-react 없이도 esbuild 설정으로 처리
+
 // Load .env.local so integration tests can reach local Supabase without
 // requiring Next.js runtime. Keeps secrets out of process.env unless running tests.
 const env = loadEnv('', process.cwd(), '');
 
 export default defineConfig({
+  esbuild: {
+    jsx: 'automatic',
+  },
   test: {
     environment: 'node',
     globals: true,

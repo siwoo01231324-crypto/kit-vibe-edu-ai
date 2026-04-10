@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 /**
  * 단위 테스트 — copyToClipboard
  * TEST-IU4-U03: navigator.clipboard.writeText 모킹 → true 반환

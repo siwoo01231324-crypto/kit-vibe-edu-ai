@@ -20,8 +20,8 @@ describe.skipIf(skip)('student quiz — responses INSERT + Realtime', () => {
   const admin = skip ? null! : createClient<Database>(URL, SRK, opts)
   const anon  = skip ? null! : createClient<Database>(URL, ANON, opts)
 
-  // 테스트용 teacher id (student-join.test.ts 와 충돌 방지 — 다른 UUID)
-  const teacherId = '00000000-0000-0000-0000-000000000002'
+  // teachers.id → auth.users(id) FK: beforeAll에서 동적 생성 (student-join과 이메일 다름)
+  let teacherId: string
   const createdSessionIds: string[] = []
 
   let sessionId: string
@@ -62,10 +62,17 @@ describe.skipIf(skip)('student quiz — responses INSERT + Realtime', () => {
   }
 
   beforeAll(async () => {
-    // teacher 행이 없으면 삽입 (FK 제약 충족)
+    // teachers.id → auth.users(id) FK: auth user 먼저 생성 후 반환된 ID로 teacher 행 삽입
+    const { data: userData, error: userErr } = await admin.auth.admin.createUser({
+      email: 'test-student-quiz@test.invalid',
+      password: 'test-password-quiz',
+      email_confirm: true,
+    })
+    if (userErr) throw new Error(`auth user 생성 실패: ${userErr.message}`)
+    teacherId = userData.user.id
     await admin
       .from('teachers')
-      .upsert({ id: teacherId, name: 'Quiz Test Teacher', email: 'quizteacher@test.invalid' }, { onConflict: 'id' })
+      .upsert({ id: teacherId, name: 'Quiz Test Teacher', email: 'test-student-quiz@test.invalid' }, { onConflict: 'id' })
 
     const session = await insertSession()
     sessionId = session.id
@@ -78,6 +85,8 @@ describe.skipIf(skip)('student quiz — responses INSERT + Realtime', () => {
       // cascade로 questions/responses도 정리
       await admin.from('sessions').delete().in('id', createdSessionIds)
     }
+    await admin.from('teachers').delete().eq('id', teacherId).catch(() => {})
+    await admin.auth.admin.deleteUser(teacherId).catch(() => {})
   })
 
   // TEST-IU1-I03
