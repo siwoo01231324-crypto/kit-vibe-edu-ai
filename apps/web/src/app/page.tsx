@@ -20,34 +20,16 @@ export default async function Home() {
 
       {/* Hero Section */}
       <section className="relative flex flex-col items-center justify-center min-h-screen px-4 text-center">
-        {/* Badge row */}
-        <div className="flex flex-wrap justify-center gap-2 mb-8 animate-fade-in-up">
-          <span className="px-4 py-1.5 bg-orange-100 text-orange-700 rounded-full text-sm font-bold border border-orange-200">
-            🎮 게임형 수업
-          </span>
-          <span className="px-4 py-1.5 bg-rose-100 text-rose-700 rounded-full text-sm font-bold border border-rose-200">
-            ⚡ 실시간
-          </span>
-          <span className="px-4 py-1.5 bg-sky-100 text-sky-700 rounded-full text-sm font-bold border border-sky-200">
-            🤖 AI 생성
-          </span>
-          <span className="px-4 py-1.5 bg-lime-100 text-lime-700 rounded-full text-sm font-bold border border-lime-200">
-            🏆 리더보드
-          </span>
-        </div>
-
         {/* Main title */}
         <h1 className="text-5xl md:text-7xl font-black text-slate-900 mb-4 font-pretendard leading-none tracking-tight animate-fade-in-up">
-          Kit{' '}
           <span className="text-brand relative">
-            Vibe
+            Seeya!
             <span className="absolute -bottom-1 left-0 w-full h-1.5 bg-brand rounded-full" />
-          </span>{' '}
-          Edu
+          </span>
         </h1>
 
         <p className="text-lg md:text-xl text-slate-500 mb-12 max-w-md font-pretendard animate-fade-in-up">
-          AI가 만드는 실시간 퀴즈 수업 플랫폼
+          교실 모두의 시야를 넓혀주는 AI 파트너
         </p>
 
         {/* Teacher / Student cards */}

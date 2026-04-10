@@ -23,7 +23,7 @@ export default async function TeacherLayout({
           className="flex items-center gap-2 py-4 text-white font-black text-xl font-pretendard hover:text-orange-100 transition-colors"
         >
           <span className="text-2xl">🎮</span>
-          Kit Vibe Edu
+          Seeya!
         </Link>
         <div className="flex items-center gap-4">
           <span className="hidden sm:block text-orange-100 text-sm font-medium truncate max-w-[200px]">
