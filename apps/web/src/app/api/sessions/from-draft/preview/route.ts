@@ -22,13 +22,9 @@ export interface PreviewResponse {
 export async function POST(request: Request) {
   const supabase = await createClient();
 
-  // 1. 인증
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { data: { user } } = await supabase.auth.getUser();
   if (!user) return Response.json({ error: 'UNAUTHORIZED' }, { status: 401 });
 
-  // 2. Body 검증
   let source_session_id: string;
   try {
     const parsed = bodySchema.parse(await request.json());
@@ -37,7 +33,6 @@ export async function POST(request: Request) {
     return Response.json({ error: 'VALIDATION_ERROR' }, { status: 400 });
   }
 
-  // 3. 세션 조회 + 소유권 확인
   const { data: session } = await supabase
     .from('sessions')
     .select('id, teacher_id')
@@ -47,18 +42,17 @@ export async function POST(request: Request) {
   if (!session || session.teacher_id !== user.id)
     return Response.json({ error: 'FORBIDDEN' }, { status: 403 });
 
-  // 4+5. 수업 초안 + 인사이트 병렬 조회
   const [{ data: draft }, { data: insightRow }] = await Promise.all([
     supabase
       .from('class_drafts')
       .select('content')
       .eq('session_id', source_session_id)
-      .maybeSingle() as Promise<{ data: { content: string } | null; error: unknown }>,
+      .maybeSingle() as unknown as Promise<{ data: { content: string } | null; error: unknown }>,
     supabase
       .from('ai_insights')
       .select('insights')
       .eq('session_id', source_session_id)
-      .maybeSingle() as Promise<{ data: { insights: unknown } | null; error: unknown }>,
+      .maybeSingle() as unknown as Promise<{ data: { insights: unknown } | null; error: unknown }>,
   ]);
 
   if (!draft) return Response.json({ error: 'NO_DRAFT' }, { status: 404 });
@@ -67,7 +61,6 @@ export async function POST(request: Request) {
   const insights = insightRow.insights as InsightResult;
   const weakConcepts = insights.top_weak_concepts ?? [];
 
-  // 6. Claude tool use 호출
   const { system, user: userMsg } = buildDraftQuestionsPrompt(draft.content, weakConcepts);
 
   let result: PreviewResponse;
@@ -93,6 +86,5 @@ export async function POST(request: Request) {
     return Response.json({ error: 'CLAUDE_ERROR' }, { status: 500 });
   }
 
-  // 7. 반환 (DB 저장 없음)
   return Response.json(result);
 }

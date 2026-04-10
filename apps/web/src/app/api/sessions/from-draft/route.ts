@@ -17,13 +17,9 @@ const bodySchema = z.object({
 export async function POST(request: Request) {
   const supabase = await createClient();
 
-  // 1. 인증
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { data: { user } } = await supabase.auth.getUser();
   if (!user) return Response.json({ error: 'UNAUTHORIZED' }, { status: 401 });
 
-  // 2. Body 검증
   let body: z.infer<typeof bodySchema>;
   try {
     body = bodySchema.parse(await request.json());
@@ -33,7 +29,6 @@ export async function POST(request: Request) {
 
   const { source_session_id, title, questions } = body;
 
-  // 3. 소유권 확인 + subject/grade 가져오기
   const { data: sourceSession } = await supabase
     .from('sessions')
     .select('id, teacher_id, subject, grade')
@@ -43,11 +38,9 @@ export async function POST(request: Request) {
   if (!sourceSession || sourceSession.teacher_id !== user.id)
     return Response.json({ error: 'FORBIDDEN' }, { status: 403 });
 
-  // 4. join_code 생성
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const join_code = await generateUniqueJoinCode(supabase as any);
 
-  // 5. 세션 INSERT
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const sb = supabase as any;
   const { data: newSession, error: sessionError } = await sb
@@ -67,7 +60,6 @@ export async function POST(request: Request) {
     return Response.json({ error: 'DB_ERROR', details: sessionError?.message }, { status: 500 });
   }
 
-  // 6. 문항 bulk INSERT
   const questionRows = questions.map((q, i) => ({
     session_id: newSession.id,
     content: q.content,
@@ -79,7 +71,6 @@ export async function POST(request: Request) {
   const { error: questionsError } = await sb.from('questions').insert(questionRows) as { error: { message: string } | null };
 
   if (questionsError) {
-    // 롤백: 세션 삭제
     const { error: rollbackErr } = await sb.from('sessions').delete().eq('id', newSession.id);
     if (rollbackErr) console.error('[from-draft] rollback failed', { sessionId: newSession.id, rollbackErr });
     return Response.json({ error: 'DB_ERROR', details: questionsError.message }, { status: 500 });

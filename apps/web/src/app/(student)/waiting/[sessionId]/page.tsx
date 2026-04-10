@@ -10,7 +10,7 @@ export default function WaitingPage() {
   const sessionId = params.sessionId as string;
 
   const [nickname, setNickname] = useState('');
-  const [sessionTitle, setSessionTitle] = useState('');
+  const [sessionTitle] = useState('');
   const { status, isLoading } = useSessionStatus(sessionId);
 
   useEffect(() => {
@@ -39,12 +39,14 @@ export default function WaitingPage() {
 
   if (status === 'ended') {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-gray-50 p-4">
-        <div className="text-center">
-          <p className="text-xl font-semibold text-gray-700">세션이 종료되었습니다.</p>
+      <main className="flex min-h-screen items-center justify-center bg-[#1E1B4B] p-4">
+        <div className="text-center animate-fade-in-up">
+          <p className="text-5xl mb-4">🏁</p>
+          <p className="text-2xl font-black text-white font-pretendard mb-2">세션이 종료되었습니다</p>
+          <p className="text-slate-400 text-sm mb-8">수고하셨습니다!</p>
           <button
             onClick={() => router.push('/join')}
-            className="mt-4 rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
+            className="rounded-xl bg-brand text-white font-bold px-8 py-4 min-h-[56px] text-base border-b-4 border-brand-dark active:border-b-0 active:translate-y-1 transition-all duration-100 cursor-pointer"
           >
             새 세션 참여
           </button>
@@ -54,24 +56,71 @@ export default function WaitingPage() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-gray-50 p-4">
-      <div className="w-full max-w-sm rounded-2xl bg-white p-8 shadow-md text-center">
+    <main className="flex min-h-screen items-center justify-center bg-[#1E1B4B] p-4">
+      {/* Star field dots */}
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        {[...Array(20)].map((_, i) => (
+          <div
+            key={i}
+            className="absolute rounded-full bg-white opacity-20 animate-pulse-slow"
+            style={{
+              width: `${2 + (i % 3)}px`,
+              height: `${2 + (i % 3)}px`,
+              top: `${(i * 37 + 11) % 90}%`,
+              left: `${(i * 53 + 7) % 95}%`,
+              animationDelay: `${(i * 0.3) % 3}s`,
+            }}
+          />
+        ))}
+      </div>
+
+      <div className="relative w-full max-w-sm text-center animate-fade-in-up">
         {isLoading ? (
-          <p className="text-gray-500">로딩 중...</p>
+          <div className="flex justify-center">
+            <div className="h-10 w-10 rounded-full border-4 border-white/20 border-t-brand animate-spin" />
+          </div>
         ) : (
           <>
-            {nickname && (
-              <p className="mb-2 text-sm text-gray-400">
-                참여자: <span className="font-semibold text-gray-700">{nickname}</span>
-              </p>
-            )}
-            {sessionTitle && (
-              <p className="mb-4 text-lg font-semibold text-gray-800">{sessionTitle}</p>
-            )}
-            <div className="mb-6 flex justify-center">
-              <div className="h-10 w-10 animate-spin rounded-full border-4 border-blue-200 border-t-blue-600" />
+            {/* Pulse orb */}
+            <div className="mb-10 flex justify-center">
+              <div className="relative h-24 w-24">
+                <div className="absolute inset-0 rounded-full bg-brand/20 animate-ping" style={{ animationDuration: '2s' }} />
+                <div className="absolute inset-3 rounded-full bg-brand/30 animate-ping" style={{ animationDuration: '2.4s', animationDelay: '0.3s' }} />
+                <div className="absolute inset-6 rounded-full bg-brand/50" />
+                <div className="absolute inset-8 rounded-full bg-brand flex items-center justify-center">
+                  <span className="text-white text-xl">⏳</span>
+                </div>
+              </div>
             </div>
-            <p className="text-gray-600">세션 시작을 기다리는 중...</p>
+
+            {nickname && (
+              <div className="inline-flex items-center gap-2 bg-white/10 rounded-full px-4 py-2 mb-6">
+                <span className="text-white/60 text-sm">참여자</span>
+                <span className="text-white font-bold text-sm">{nickname}</span>
+              </div>
+            )}
+
+            {sessionTitle && (
+              <p className="mb-4 text-xl font-bold text-white font-pretendard">{sessionTitle}</p>
+            )}
+
+            <h1 className="text-2xl md:text-3xl font-black text-white font-pretendard mb-3">
+              선생님을 기다리는 중...
+            </h1>
+            <p className="text-white/50 text-sm">
+              선생님이 시작하면 자동으로 이동합니다
+            </p>
+
+            {/* Loading dots */}
+            <div className="mt-8 flex justify-center gap-2">
+              {[0, 1, 2].map((i) => (
+                <div
+                  key={i}
+                  className="w-2 h-2 rounded-full bg-brand animate-bounce"
+                  style={{ animationDelay: `${i * 0.2}s` }}
+                />
+              ))}
+            </div>
           </>
         )}
       </div>

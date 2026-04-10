@@ -50,9 +50,6 @@ export const DRAFT_QUESTIONS_TOOL = {
 
 /**
  * 문항 생성을 위한 system / user 메시지 쌍을 반환한다.
- *
- * @param draftContent - 수업 초안 마크다운 텍스트
- * @param weakConcepts - 인사이트에서 추출한 취약 개념 목록
  */
 export function buildDraftQuestionsPrompt(
   draftContent: string,
