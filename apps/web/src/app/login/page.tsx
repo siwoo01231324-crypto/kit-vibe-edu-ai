@@ -16,7 +16,7 @@ export default async function LoginPage({ searchParams }: Props) {
         {/* Logo area */}
         <div className="text-center mb-8">
           <p className="text-5xl mb-3">🎮</p>
-          <h1 className="text-3xl font-black text-slate-900 font-pretendard">Kit Vibe Edu</h1>
+          <h1 className="text-3xl font-black text-slate-900 font-pretendard">Seeya!</h1>
           <p className="text-slate-500 text-sm mt-1">교사 로그인</p>
         </div>
 

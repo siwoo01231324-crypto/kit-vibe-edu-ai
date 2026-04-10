@@ -953,3 +953,29 @@ Issue #31 교사 대시보드 세션 목록 + 실시간 집계 차트 구현 (IU
 - 핵심 디버깅: `animate-burst`는 React 배치 렌더 후 `currentQuestion`이 전진하여 DOM에서 사라짐
   → `animate-float-up`(scoreFloat, 1100ms) 으로 정답 애니메이션 검증으로 변경
 - Supabase anon 키(`sb_publishable_...`) 로컬에서 정상 동작 확인 (RLS 적용 됨)
+
+---
+
+## 2026-04-11
+
+### 브랜딩 네이밍 UI 일괄 적용 (2026-04-11) — 이슈 #67
+
+**사용 도구**:
+- Claude Code (Claude Sonnet 4.6) + oh-my-claudecode /ri /plan /fi
+
+**주요 작업**: branding-strategy.md Section 4 기준 최종 브랜드명 확정 및 UI 전체 적용
+
+**AI 기여 영역**:
+- `docs/branding/naming-decision.md` — 신규 작성: Seeya(시야) 선택 근거, 탈락 후보(Lumi, Echoo, MirAI) 분석
+- `apps/web/src/app/layout.tsx` — metadata title `Seeya!`, description `교실 모두의 시야를 넓혀주는 AI 파트너`
+- `apps/web/src/app/page.tsx` — h1 `Seeya!`, 서브타이틀 교체, 기능 뱃지 섹션 제거
+- `apps/web/src/app/login/page.tsx` — 앱명 `Seeya!`
+- `apps/web/src/app/teacher/layout.tsx` — 헤더 앱명 `Seeya!`
+- `apps/web/tests/e2e/smoke.spec.ts` — 정규식 `/Seeya!/i`
+- `.ai.md` 2개 최신화
+
+**인간 주도 영역**:
+- 브랜드명 최종 확정 (Seeya로 결정)
+- 태그라인 카피라이팅 방향 결정 ("교실 모두의 시야를 넓혀주는 AI 파트너")
+- 기능 뱃지 섹션 제거 결정
+- 최종 코드 검토 및 커밋 승인
