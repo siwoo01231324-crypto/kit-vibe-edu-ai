@@ -2,6 +2,7 @@
 
 import React from 'react';
 import Markdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { copyToClipboard } from '@/lib/clipboard';
 
 interface Props {
@@ -31,7 +32,7 @@ export function ClassDraftPanel({ content }: Props) {
         </button>
       </div>
       <div className="prose prose-sm max-w-none rounded-lg border bg-white p-4">
-        <Markdown>{content}</Markdown>
+        <Markdown remarkPlugins={[remarkGfm]}>{content}</Markdown>
       </div>
     </div>
   );
