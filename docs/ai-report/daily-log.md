@@ -924,3 +924,32 @@ Issue #31 교사 대시보드 세션 목록 + 실시간 집계 차트 구현 (IU
 
 **인간 주도 영역**:
 - 최종 검토 및 커밋 승인
+
+---
+
+### Playwright E2E 시나리오 3종 구현 (2026-04-10) — 이슈 #39
+
+**사용 도구**:
+- Claude Code (Claude Sonnet 4.6) + oh-my-claudecode ralplan 합의 플래닝
+- Planner(Opus) → Architect(Opus) → Critic(Opus) 2회 반복 후 계획 확정
+
+**주요 프롬프트**: `/ri 플랜짜고 구현해` → ralplan consensus → 구현
+
+**AI 기여 영역**:
+- `tests/e2e/helpers/supabase-admin.ts` — Admin API 헬퍼 신규 (createUser, signIn, dbInsert/Select 등)
+- `tests/e2e/teacher-flow.spec.ts` — E2E-01: 세션생성→문항3개→활성화→QR
+- `tests/e2e/student-flow.spec.ts` — E2E-02 + TEST-IU1-E02: 학생 풀 플로우 + 3 context 동시 응답
+- `tests/e2e/ai-flow.spec.ts` — E2E-03: 인사이트→취약개념→초안→마크다운
+- `src/lib/anthropic.ts` — MOCK_CLAUDE=1 분기 추가 (실제 API 호출 우회)
+- `playwright.config.ts` — webServer.env.MOCK_CLAUDE='1' 추가
+
+**인간 주도 영역**:
+- `npm run e2e` 실제 실행 및 결과 검증
+- QuestionForm selector 실제 DOM 확인 (첫 실행 시)
+- 최종 코드 검토 및 커밋 승인
+
+**최종 결과** (2026-04-10):
+- 7/7 테스트 통과 (15.7s) — smoke, E2E-01, E2E-02 x2, E2E-03 x2, TEST-IU1-E02
+- 핵심 디버깅: `animate-burst`는 React 배치 렌더 후 `currentQuestion`이 전진하여 DOM에서 사라짐
+  → `animate-float-up`(scoreFloat, 1100ms) 으로 정답 애니메이션 검증으로 변경
+- Supabase anon 키(`sb_publishable_...`) 로컬에서 정상 동작 확인 (RLS 적용 됨)
