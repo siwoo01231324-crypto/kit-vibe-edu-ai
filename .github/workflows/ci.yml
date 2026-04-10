@@ -1,0 +1,150 @@
+name: CI
+
+# PR/푸시마다 lint + 단위/통합 테스트 + E2E 를 자동 실행해 회귀를 머지 전에 차단한다.
+# dev-spec §6.5
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+jobs:
+  # ──────────────────────────────────────────────
+  # Job 1: lint — ESLint + TypeScript + 불변식 검증
+  # ──────────────────────────────────────────────
+  lint:
+    name: lint
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/web
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: apps/web/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: ESLint
+        run: npm run lint
+
+      - name: TypeScript (tsc --noEmit)
+        run: npx tsc --noEmit
+
+      - name: Check invariants (불변식 검증)
+        working-directory: ${{ github.workspace }}
+        run: python scripts/check_invariants.py
+
+      - name: Check forbidden files (금지 파일 형식 차단)
+        working-directory: ${{ github.workspace }}
+        run: python scripts/check_forbidden_files.py
+
+  # ──────────────────────────────────────────────
+  # Job 2: test — Vitest (unit + integration)
+  # Supabase local 인스턴스를 supabase start 로 기동
+  # ──────────────────────────────────────────────
+  test:
+    name: test
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/web
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: apps/web/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Start Supabase
+        working-directory: ${{ github.workspace }}
+        run: |
+          supabase start
+          # supabase status -o env 의 키를 vitest 기대 변수명으로 매핑
+          SUPABASE_URL=$(supabase status -o env | grep '^API_URL' | cut -d= -f2 | tr -d '"')
+          SUPABASE_ANON=$(supabase status -o env | grep '^ANON_KEY' | cut -d= -f2 | tr -d '"')
+          SUPABASE_SRK=$(supabase status -o env | grep '^SERVICE_ROLE_KEY' | cut -d= -f2 | tr -d '"')
+          echo "NEXT_PUBLIC_SUPABASE_URL=${SUPABASE_URL}" >> $GITHUB_ENV
+          echo "NEXT_PUBLIC_SUPABASE_ANON_KEY=${SUPABASE_ANON}" >> $GITHUB_ENV
+          echo "SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SRK}" >> $GITHUB_ENV
+
+      - name: Run Vitest
+        run: npm test
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ env.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ env.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ env.SUPABASE_SERVICE_ROLE_KEY }}
+          # 테스트에서 Claude API 호출이 필요한 경우 시크릿 등록 필요
+          # ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+
+  # ──────────────────────────────────────────────
+  # Job 3: e2e — Playwright (Chromium)
+  # Supabase + Next.js dev 서버 기동 후 E2E 실행
+  # ──────────────────────────────────────────────
+  e2e:
+    name: e2e
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/web
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: apps/web/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Start Supabase
+        working-directory: ${{ github.workspace }}
+        run: |
+          supabase start
+          SUPABASE_URL=$(supabase status -o env | grep '^API_URL' | cut -d= -f2 | tr -d '"')
+          SUPABASE_ANON=$(supabase status -o env | grep '^ANON_KEY' | cut -d= -f2 | tr -d '"')
+          SUPABASE_SRK=$(supabase status -o env | grep '^SERVICE_ROLE_KEY' | cut -d= -f2 | tr -d '"')
+          echo "NEXT_PUBLIC_SUPABASE_URL=${SUPABASE_URL}" >> $GITHUB_ENV
+          echo "NEXT_PUBLIC_SUPABASE_ANON_KEY=${SUPABASE_ANON}" >> $GITHUB_ENV
+          echo "SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SRK}" >> $GITHUB_ENV
+
+      - name: Install Playwright browsers (Chromium only)
+        run: npx playwright install --with-deps chromium
+
+      - name: Run Playwright E2E
+        run: npm run e2e
+        env:
+          CI: true
+          NEXT_PUBLIC_SUPABASE_URL: ${{ env.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ env.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ env.SUPABASE_SERVICE_ROLE_KEY }}
+          # ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}

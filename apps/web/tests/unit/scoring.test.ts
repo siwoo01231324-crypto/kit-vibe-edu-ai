@@ -2,25 +2,27 @@ import { describe, it, expect } from 'vitest';
 import { calculateScore } from '../../src/lib/scoring';
 import { validateNickname } from '../../src/lib/validation';
 
+// scoring.ts: calculateScore(isCorrect, _responseTimeMs, totalQuestions)
+// 정답 시 Math.round(100 / totalQuestions), 오답 시 0
 describe('calculateScore', () => {
-  it('isCorrect=true, responseTimeMs=0 → 1000', () => {
-    expect(calculateScore(true, 0)).toBe(1000);
+  it('isCorrect=true, totalQuestions=1 → 100', () => {
+    expect(calculateScore(true, 0, 1)).toBe(100);
   });
 
-  it('isCorrect=true, responseTimeMs=9000 → 100 (하한)', () => {
-    expect(calculateScore(true, 9000)).toBe(100);
+  it('isCorrect=true, totalQuestions=4 → 25', () => {
+    expect(calculateScore(true, 9000, 4)).toBe(25);
   });
 
-  it('isCorrect=false, responseTimeMs=0 → 0', () => {
-    expect(calculateScore(false, 0)).toBe(0);
+  it('isCorrect=false → 0 (응답 시간·문항 수 무관)', () => {
+    expect(calculateScore(false, 0, 1)).toBe(0);
   });
 
-  it('isCorrect=true, responseTimeMs=5000 → 500', () => {
-    expect(calculateScore(true, 5000)).toBe(500);
+  it('isCorrect=true, totalQuestions=3 → 33', () => {
+    expect(calculateScore(true, 5000, 3)).toBe(33);
   });
 
-  it('isCorrect=true, responseTimeMs=10000 → 100 (하한 적용)', () => {
-    expect(calculateScore(true, 10000)).toBe(100);
+  it('isCorrect=true, totalQuestions=10 → 10', () => {
+    expect(calculateScore(true, 10000, 10)).toBe(10);
   });
 });
 

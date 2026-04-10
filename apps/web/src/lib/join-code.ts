@@ -1,4 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
+import type { Database } from '@/types/database';
 
 const CODE_LENGTH = 6;
 const MAX_RETRY = 5;
@@ -12,7 +13,7 @@ export function generateJoinCode(): string {
   return code;
 }
 
-export async function generateUniqueJoinCode(supabase: SupabaseClient): Promise<string> {
+export async function generateUniqueJoinCode(supabase: SupabaseClient<Database>): Promise<string> {
   for (let attempt = 0; attempt < MAX_RETRY; attempt++) {
     const code = generateJoinCode();
     const { data } = await supabase

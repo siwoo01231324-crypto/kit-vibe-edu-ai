@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { createClient } from '@/lib/supabase/server';
 import { callClaude } from '@/lib/anthropic';
 import { buildDraftPrompt } from '@/lib/prompts/class-draft';
+import type { InsightResult } from '@/lib/prompts/insights';
 
 const bodySchema = z.object({ session_id: z.string().uuid() });
 
@@ -58,7 +59,7 @@ export async function POST(request: Request) {
 
   // 6. Build prompt and call Claude
   const { system, user: userMsg } = buildDraftPrompt(
-    insightRow.insights,
+    insightRow.insights as unknown as InsightResult,
     session.subject,
     session.grade,
   );
