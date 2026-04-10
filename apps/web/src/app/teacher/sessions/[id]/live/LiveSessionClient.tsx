@@ -96,15 +96,15 @@ export function LiveSessionClient({ session, joinUrl, questions }: Props) {
   return (
     <div className="max-w-2xl mx-auto space-y-8">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold">{session.title}</h1>
-        <p className="text-sm text-gray-500 mt-1">{session.subject} · {session.grade}</p>
+        <h1 className="text-2xl font-bold text-slate-800">{session.title}</h1>
+        <p className="text-sm text-slate-500 mt-1">{session.subject} · {session.grade}</p>
       </div>
 
       {/* 참여 코드 */}
-      <div className="bg-gray-50 rounded-lg p-6 text-center space-y-2">
-        <p className="text-sm text-gray-500">참여 코드</p>
-        <p className="text-4xl font-mono font-bold tracking-widest">{session.join_code}</p>
-        <p className="text-xs text-gray-400">{joinUrl}</p>
+      <div className="bg-orange-50 rounded-xl border border-orange-200 p-6 text-center space-y-2">
+        <p className="text-sm text-slate-500">참여 코드</p>
+        <p className="text-4xl font-mono font-bold tracking-widest text-orange-600">{session.join_code}</p>
+        <p className="text-xs text-slate-400">{joinUrl}</p>
       </div>
 
       {/* QR 코드 */}
@@ -118,7 +118,7 @@ export function LiveSessionClient({ session, joinUrl, questions }: Props) {
           <button
             onClick={handleActivate}
             disabled={isPending}
-            className="px-8 py-3 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-8 py-3 bg-correct text-slate-900 rounded-xl font-semibold border-b-4 border-correct-dark active:border-b-0 active:translate-y-1 transition-all duration-100 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isPending ? '처리 중...' : '세션 시작'}
           </button>
@@ -127,26 +127,26 @@ export function LiveSessionClient({ session, joinUrl, questions }: Props) {
           <button
             onClick={handleEnd}
             disabled={isPending}
-            className="px-8 py-3 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-8 py-3 bg-wrong text-white rounded-xl font-semibold border-b-4 border-wrong-dark active:border-b-0 active:translate-y-1 transition-all duration-100 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isPending ? '처리 중...' : '세션 종료'}
           </button>
         )}
         {session.status === 'ended' && (
           <div className="flex flex-col items-center gap-3">
-            <span className="px-6 py-2 bg-gray-200 text-gray-600 rounded-lg text-sm">
+            <span className="px-6 py-2 bg-slate-100 text-slate-500 rounded-xl text-sm border border-slate-200">
               종료된 세션
             </span>
             <button
-              onClick={() => router.push('/teacher/dashboard')}
-              className="px-8 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+              onClick={() => router.push(`/teacher/dashboard?session=${session.id}`)}
+              className="px-8 py-3 bg-brand text-white rounded-xl font-semibold border-b-4 border-brand-dark active:border-b-0 active:translate-y-1 transition-all duration-100 cursor-pointer"
             >
               대시보드로 돌아가기
             </button>
             <button
               onClick={handleReset}
               disabled={isPending}
-              className="px-6 py-2 border border-gray-400 text-gray-700 rounded-lg font-medium hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-6 py-2 border border-slate-300 text-slate-600 rounded-xl font-medium hover:bg-slate-50 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isPending ? '처리 중...' : '다시하기'}
             </button>

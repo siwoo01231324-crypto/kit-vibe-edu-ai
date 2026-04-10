@@ -4,7 +4,6 @@ import { useEffect, useRef, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { calculateScore } from '@/lib/scoring';
-import { validateThumbsType } from '@/lib/validation';
 import { useStudentQuestions } from '@/hooks/useStudentQuestions';
 import { useSessionStatus } from '@/hooks/useSessionStatus';
 import { useLeaderboard } from '@/hooks/useLeaderboard';
@@ -17,6 +16,21 @@ interface Feedback {
   choice: number;
   isCorrect: boolean;
 }
+
+interface ScoreFloat {
+  value: number;
+  key: number;
+}
+
+// Kahoot-style positional colors (not AI-slop indigo)
+const ANSWER_COLORS = [
+  { bg: 'bg-rose-500',  shadow: 'shadow-[0_4px_0_#BE123C]', activeShadow: 'shadow-[0_1px_0_#BE123C]', text: 'text-white' },
+  { bg: 'bg-sky-400',   shadow: 'shadow-[0_4px_0_#0284C7]', activeShadow: 'shadow-[0_1px_0_#0284C7]', text: 'text-white' },
+  { bg: 'bg-amber-400', shadow: 'shadow-[0_4px_0_#CA8A04]', activeShadow: 'shadow-[0_1px_0_#CA8A04]', text: 'text-slate-900' },
+  { bg: 'bg-lime-400',  shadow: 'shadow-[0_4px_0_#16A34A]', activeShadow: 'shadow-[0_1px_0_#16A34A]', text: 'text-slate-900' },
+];
+
+const ANSWER_LABELS = ['A', 'B', 'C', 'D'];
 
 export default function QuizPage() {
   const router = useRouter();
@@ -31,13 +45,14 @@ export default function QuizPage() {
   const [thumbsComment, setThumbsComment] = useState('');
   const [totalScore, setTotalScore] = useState(0);
   const [correctCount, setCorrectCount] = useState(0);
+  const [scoreFloat, setScoreFloat] = useState<ScoreFloat | null>(null);
   const questionStartAt = useRef<number>(Date.now());
 
   const { questions, isLoading } = useStudentQuestions(sessionId);
   const { status } = useSessionStatus(sessionId);
   const { leaderboard, isLoading: leaderboardLoading } = useLeaderboard(sessionId);
 
-  // sessionStorage 가드 — waiting 페이지와 동일 패턴
+  // sessionStorage 가드
   useEffect(() => {
     const raw = sessionStorage.getItem('studentSession');
     if (!raw) {
@@ -56,22 +71,33 @@ export default function QuizPage() {
     }
   }, [sessionId, router]);
 
-  // 현재 문항 결정 — answeredQuestionIds 에 없는 첫 번째 (question_order asc)
   const currentQuestion: QuestionRow | undefined = questions.find(
     (q) => !answeredQuestionIds.has(q.id)
   );
 
-  // 문항 시작 시각 기록
   useEffect(() => {
     questionStartAt.current = Date.now();
   }, [currentQuestion?.id]);
 
-  // 선택지 클릭 핸들러
+  // confetti — 결과 화면 진입 시
+  useEffect(() => {
+    if (status !== 'ended') return;
+    const fireConfetti = async () => {
+      const confetti = (await import('canvas-confetti')).default;
+      confetti({
+        particleCount: 120,
+        spread: 80,
+        origin: { y: 0.5 },
+        colors: ['#F97316', '#22C55E', '#38BDF8', '#F59E0B'],
+      });
+    };
+    fireConfetti();
+  }, [status]);
+
   async function handleSelect(choiceIndex: number) {
     if (!currentQuestion) return;
-    if (answeredQuestionIds.has(currentQuestion.id)) return; // 중복 가드
+    if (answeredQuestionIds.has(currentQuestion.id)) return;
 
-    // 즉시 버튼 비활성화 (클라이언트 가드)
     const questionId = currentQuestion.id;
     setAnsweredQuestionIds((prev) => new Set(prev).add(questionId));
 
@@ -79,14 +105,15 @@ export default function QuizPage() {
     const isCorrect = choiceIndex === currentQuestion.correct_answer;
     const score = calculateScore(isCorrect, responseTimeMs, questions.length);
 
-    // 로컬 점수 누적
-    if (isCorrect) setCorrectCount((c) => c + 1);
+    if (isCorrect) {
+      setCorrectCount((c) => c + 1);
+      // float-up 점수 효과
+      setScoreFloat({ value: score, key: Date.now() });
+      setTimeout(() => setScoreFloat(null), 1100);
+    }
     setTotalScore((s) => s + score);
-
-    // 피드백 표시
     setFeedback({ choice: choiceIndex, isCorrect });
 
-    // responses INSERT (anon, Supabase Direct)
     const supabase = createClient();
     const { error } = await supabase.from('responses').insert({
       session_id: sessionId,
@@ -100,7 +127,6 @@ export default function QuizPage() {
 
     if (error) {
       console.error('responses INSERT 실패:', error.message);
-      // INSERT 실패 시 가드 롤백 (재시도 허용)
       setAnsweredQuestionIds((prev) => {
         const next = new Set(prev);
         next.delete(questionId);
@@ -110,109 +136,99 @@ export default function QuizPage() {
       return;
     }
 
-    // 1.5초 후 피드백 해제 → 다음 문항 대기
     setTimeout(() => {
       setFeedback(null);
     }, 1500);
   }
 
-  // 따봉 피드백 제출
   async function handleThumbsFeedback(type: 'up' | 'down') {
-    if (!validateThumbsType(type)) {
-      console.error('Invalid thumbs type');
-      return;
-    }
-    if (thumbsSubmitted) return; // 중복 가드
+    if (thumbsSubmitted) return;
 
     setThumbsSubmitted(true);
     setThumbsError(null);
-    const supabase = createClient();
-    const { error } = await supabase.from('thumbs_feedback').insert({
-      session_id: sessionId,
-      nickname,
-      type,
-      comment: thumbsComment.trim() || null,
-    });
-
-    if (error) {
-      console.error('thumbs_feedback INSERT 실패:', error.message);
-      setThumbsSubmitted(false); // 실패 시 재시도 허용
-      setThumbsError('피드백 전송에 실패했습니다. 다시 시도해주세요.');
+    try {
+      const res = await fetch('/api/thumbs', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          session_id: sessionId,
+          nickname,
+          type,
+          comment: thumbsComment.trim() || null,
+        }),
+      });
+      if (!res.ok) {
+        setThumbsSubmitted(false);
+        setThumbsError('피드백 전송에 실패했습니다. 다시 시도해주세요.');
+      }
+    } catch {
+      setThumbsSubmitted(false);
+      setThumbsError('네트워크 오류가 발생했습니다.');
     }
   }
 
-  // 세션 종료 — 결과 화면
+  // 세션 종료 — 결과 화면 (다크 게임 배경)
   if (status === 'ended') {
     const total = answeredQuestionIds.size;
     const accuracy = total > 0 ? Math.round((correctCount / total) * 100) : 0;
     return (
-      <main className="flex min-h-screen flex-col items-center bg-gray-50 p-4 py-10">
+      <main className="flex min-h-screen flex-col items-center bg-[#1E1B4B] p-4 py-10">
         <div className="w-full max-w-md space-y-6">
-          {/* 개인 결과 요약 */}
-          <div className="rounded-2xl bg-white p-8 shadow-md text-center">
-            <p className="text-3xl mb-2">🏆</p>
-            <p className="text-2xl font-bold text-gray-800 mb-1">퀴즈가 종료되었습니다</p>
+          {/* 결과 카드 */}
+          <div className="rounded-2xl bg-[#2D2A5E] border border-white/10 p-8 text-center animate-fade-in-up">
+            <p className="text-5xl mb-3">🏆</p>
+            <p className="text-2xl font-black text-white mb-1 font-pretendard">퀴즈 종료!</p>
             {nickname && (
-              <p className="text-sm text-gray-400 mb-4">{nickname} 님의 결과</p>
+              <p className="text-sm text-white/50 mb-6">{nickname} 님의 결과</p>
             )}
 
             {/* 점수 통계 */}
             <div className="grid grid-cols-3 gap-3 text-center mb-6">
-              <div className="rounded-xl bg-blue-50 p-3">
-                <p className="text-2xl font-bold text-blue-600">{totalScore}</p>
-                <p className="text-xs text-gray-500 mt-1">총 점수</p>
+              <div className="rounded-xl bg-amber-500/20 border border-amber-400/30 p-3">
+                <p className="text-2xl font-black text-amber-400 font-space-grotesk">{totalScore}</p>
+                <p className="text-xs text-white/50 mt-1">총 점수</p>
               </div>
-              <div className="rounded-xl bg-green-50 p-3">
-                <p className="text-2xl font-bold text-green-600">{correctCount}/{total}</p>
-                <p className="text-xs text-gray-500 mt-1">정답</p>
+              <div className="rounded-xl bg-lime-500/20 border border-lime-400/30 p-3">
+                <p className="text-2xl font-black text-lime-400 font-space-grotesk">{correctCount}/{total}</p>
+                <p className="text-xs text-white/50 mt-1">정답</p>
               </div>
-              <div className="rounded-xl bg-purple-50 p-3">
-                <p className="text-2xl font-bold text-purple-600">{accuracy}%</p>
-                <p className="text-xs text-gray-500 mt-1">정답률</p>
+              <div className="rounded-xl bg-sky-500/20 border border-sky-400/30 p-3">
+                <p className="text-2xl font-black text-sky-400 font-space-grotesk">{accuracy}%</p>
+                <p className="text-xs text-white/50 mt-1">정답률</p>
               </div>
             </div>
 
             {/* 따봉 피드백 */}
             <div className="mb-6">
-              <p className="text-sm text-gray-500 mb-3">수업이 어땠나요?</p>
+              <p className="text-sm text-white/60 mb-3">수업이 어땠나요?</p>
               {thumbsSubmitted ? (
-                <p className="text-sm font-medium text-green-600">피드백을 보내주셔서 감사합니다!</p>
+                <p className="text-sm font-bold text-lime-400">피드백을 보내주셔서 감사합니다! 🎉</p>
               ) : (
                 <div className="space-y-3">
-                  <div className="flex justify-center gap-4">
-                    <button
-                      onClick={() => handleThumbsFeedback('up')}
-                      className="text-4xl rounded-xl border-2 border-gray-200 bg-white px-6 py-3 hover:border-green-400 hover:bg-green-50 transition-colors"
-                      aria-label="좋아요"
-                    >
-                      👍
-                    </button>
-                    <button
-                      onClick={() => handleThumbsFeedback('down')}
-                      className="text-4xl rounded-xl border-2 border-gray-200 bg-white px-6 py-3 hover:border-red-400 hover:bg-red-50 transition-colors"
-                      aria-label="별로예요"
-                    >
-                      👎
-                    </button>
-                  </div>
                   <textarea
                     value={thumbsComment}
                     onChange={(e) => setThumbsComment(e.target.value)}
                     placeholder="어디가 어려웠나요? (선택)"
                     maxLength={200}
                     rows={2}
-                    className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 placeholder-gray-400 resize-none focus:outline-none focus:border-blue-300"
+                    className="w-full rounded-xl border border-white/20 bg-white/10 px-3 py-2 text-sm text-white placeholder-white/40 resize-none focus:outline-none focus:border-brand"
                   />
+                  <button
+                    onClick={() => handleThumbsFeedback('up')}
+                    className="w-full rounded-xl bg-white/10 border border-white/20 text-white font-bold py-2 min-h-[44px] hover:bg-white/20 transition-all cursor-pointer text-sm"
+                  >
+                    피드백 전송
+                  </button>
                 </div>
               )}
               {thumbsError && (
-                <p className="mt-2 text-xs text-red-500">{thumbsError}</p>
+                <p className="mt-2 text-xs text-rose-400">{thumbsError}</p>
               )}
             </div>
 
             <button
               onClick={() => router.push('/join')}
-              className="w-full rounded-lg bg-blue-600 px-6 py-2 text-white hover:bg-blue-700 transition-colors"
+              className="w-full rounded-xl bg-brand text-white font-black py-4 text-base border-b-4 border-brand-dark active:border-b-0 active:translate-y-1 transition-all duration-100 cursor-pointer"
             >
               처음으로
             </button>
@@ -231,103 +247,143 @@ export default function QuizPage() {
 
   if (isLoading) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-gray-50">
-        <div className="h-10 w-10 animate-spin rounded-full border-4 border-blue-200 border-t-blue-600" />
+      <main className="flex min-h-screen items-center justify-center bg-[#1E1B4B]">
+        <div className="h-10 w-10 rounded-full border-4 border-white/20 border-t-brand animate-spin" />
       </main>
     );
   }
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center bg-gray-50 p-4">
+    <main className="flex min-h-screen flex-col items-center justify-center bg-[#1E1B4B] p-4">
       <div className="w-full max-w-lg">
-        {/* 닉네임 배지 */}
-        {nickname && (
-          <p className="mb-4 text-center text-sm text-gray-400">
-            참여자: <span className="font-semibold text-gray-700">{nickname}</span>
-          </p>
-        )}
+        {/* 상단: 닉네임 + 점수 */}
+        <div className="flex items-center justify-between mb-6">
+          {nickname && (
+            <div className="flex items-center gap-2 bg-white/10 rounded-full px-3 py-1.5">
+              <span className="text-white/60 text-xs">👤</span>
+              <span className="text-white text-sm font-bold font-pretendard">{nickname}</span>
+            </div>
+          )}
+          <div className="flex items-center gap-2 bg-amber-500/20 border border-amber-400/30 rounded-full px-3 py-1.5 ml-auto">
+            <span className="text-amber-400 text-xs">⭐</span>
+            <span className="text-amber-400 text-sm font-black font-space-grotesk">{totalScore}</span>
+          </div>
+        </div>
 
         {currentQuestion ? (
           <>
             {/* 문항 번호 */}
-            <p className="mb-2 text-center text-sm text-gray-400">
-              문제 {currentQuestion.question_order} / {questions.length}
+            <p className="mb-3 text-center text-sm font-bold text-white/40 font-space-grotesk tracking-wider uppercase">
+              Question {currentQuestion.question_order} / {questions.length}
             </p>
 
-            {/* 문항 내용 */}
-            <div className="mb-6 rounded-2xl bg-white p-6 shadow-md">
-              <p className="text-lg font-semibold text-gray-800 text-center leading-relaxed">
+            {/* 문항 카드 */}
+            <div className="mb-5 rounded-2xl bg-[#2D2A5E] border border-white/10 shadow-lg p-6">
+              <p className="text-lg md:text-xl font-bold text-white text-center leading-relaxed font-pretendard">
                 {currentQuestion.content}
               </p>
             </div>
 
-            {/* 선택지 grid */}
-            <div className="grid grid-cols-2 gap-3">
-              {(currentQuestion.options as string[]).map((option, idx) => {
-                const isAnswered = answeredQuestionIds.has(currentQuestion.id);
-                const isSelected = feedback?.choice === idx;
-                const isCorrectChoice = idx === currentQuestion.correct_answer;
+            {/* 선택지 grid — relative로 float-up 앵커 */}
+            <div className="relative">
+              {/* Float-up 점수 */}
+              {scoreFloat && (
+                <div
+                  key={scoreFloat.key}
+                  className="pointer-events-none absolute left-1/2 -translate-x-1/2 top-0 z-10 animate-float-up font-space-grotesk font-black text-score-text text-3xl drop-shadow-lg"
+                >
+                  +{scoreFloat.value}
+                </div>
+              )}
 
-                let buttonClass =
-                  'rounded-xl p-4 text-sm font-medium transition-all duration-300 border-2 ';
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {(currentQuestion.options as string[]).map((option, idx) => {
+                  const color = ANSWER_COLORS[idx % ANSWER_COLORS.length]!;
+                  const isAnswered = answeredQuestionIds.has(currentQuestion.id);
+                  const isSelected = feedback?.choice === idx;
+                  const isCorrectChoice = idx === currentQuestion.correct_answer;
 
-                if (isAnswered && feedback) {
-                  if (isSelected && feedback.isCorrect) {
-                    buttonClass += 'bg-green-500 border-green-500 text-white scale-105';
-                  } else if (isSelected && !feedback.isCorrect) {
-                    buttonClass += 'bg-red-500 border-red-500 text-white animate-shake';
-                  } else if (isCorrectChoice) {
-                    buttonClass += 'bg-green-100 border-green-400 text-green-800';
+                  let cls =
+                    `relative min-h-[80px] md:min-h-[100px] rounded-xl p-4 text-base font-bold transition-all duration-200 flex items-center gap-3 ` +
+                    `${color.bg} ${color.text} `;
+
+                  if (!isAnswered) {
+                    cls += `${color.shadow} active:shadow-none active:translate-y-1 cursor-pointer hover:brightness-110`;
+                  } else if (isSelected && feedback?.isCorrect) {
+                    cls += `animate-burst shadow-[0_4px_0_#16A34A] bg-correct border-2 border-correct/50`;
+                  } else if (isSelected && !feedback?.isCorrect) {
+                    cls += `animate-shake-x shadow-[0_4px_0_#BE123C] bg-wrong border-2 border-wrong/50 opacity-90`;
+                  } else if (isCorrectChoice && isAnswered) {
+                    cls += `shadow-[0_4px_0_#16A34A] bg-correct border-2 border-correct/50`;
                   } else {
-                    buttonClass += 'bg-gray-100 border-gray-200 text-gray-400 opacity-50';
+                    cls += `opacity-25 cursor-not-allowed`;
                   }
-                } else if (isAnswered) {
-                  buttonClass += 'bg-gray-100 border-gray-200 text-gray-400 opacity-50 cursor-not-allowed';
-                } else {
-                  buttonClass += 'bg-white border-gray-200 text-gray-700 hover:border-blue-400 hover:bg-blue-50 cursor-pointer';
-                }
 
-                return (
-                  <button
-                    key={idx}
-                    onClick={() => handleSelect(idx)}
-                    disabled={isAnswered}
-                    className={buttonClass}
-                  >
-                    <span className="mr-2 font-bold text-blue-500">
-                      {['①', '②', '③', '④'][idx]}
-                    </span>
-                    {option}
-                  </button>
-                );
-              })}
+                  return (
+                    <button
+                      key={idx}
+                      onClick={() => handleSelect(idx)}
+                      disabled={isAnswered}
+                      className={cls}
+                    >
+                      <span className="flex-shrink-0 w-8 h-8 rounded-lg bg-black/20 flex items-center justify-center text-sm font-black">
+                        {ANSWER_LABELS[idx]}
+                      </span>
+                      <span className="text-left leading-snug">{option}</span>
+
+                      {/* 피드백 배지 */}
+                      {isAnswered && isSelected && feedback?.isCorrect && (
+                        <span className="ml-auto text-xs font-black bg-white/20 px-2 py-1 rounded-full whitespace-nowrap">
+                          ✓ 정답!
+                        </span>
+                      )}
+                      {isAnswered && isSelected && !feedback?.isCorrect && (
+                        <span className="ml-auto text-xs font-black bg-white/20 px-2 py-1 rounded-full whitespace-nowrap">
+                          ✗ 오답
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           </>
         ) : (
-          <div className="rounded-2xl bg-white p-10 shadow-md text-center">
+          <div className="rounded-2xl bg-[#2D2A5E] border border-white/10 shadow-lg p-10 text-center animate-fade-in-up">
             {questions.length === 0 ? (
-              /* 아직 문항 없음 */
               <>
-                <p className="text-lg font-semibold text-gray-700 mb-2">곧 문제가 시작됩니다</p>
-                <p className="text-sm text-gray-400">선생님이 문제를 준비 중입니다...</p>
-                <div className="mt-6 flex justify-center">
-                  <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-200 border-t-blue-600" />
+                <p className="text-4xl mb-4">⏳</p>
+                <p className="text-xl font-black text-white mb-2 font-pretendard">곧 문제가 시작됩니다</p>
+                <p className="text-sm text-white/50">선생님이 문제를 준비 중입니다...</p>
+                <div className="mt-6 flex justify-center gap-2">
+                  {[0, 1, 2].map((i) => (
+                    <div
+                      key={i}
+                      className="w-2.5 h-2.5 rounded-full bg-brand animate-bounce"
+                      style={{ animationDelay: `${i * 0.2}s` }}
+                    />
+                  ))}
                 </div>
               </>
             ) : answeredQuestionIds.size >= questions.length ? (
-              /* 모든 문항 완료 */
               <>
-                <p className="text-3xl mb-3">🎉</p>
-                <p className="text-lg font-semibold text-gray-800 mb-2">모든 문항을 완료했습니다!</p>
-                <p className="text-sm text-gray-400">선생님이 세션을 종료할 때까지 기다려주세요.</p>
+                <p className="text-4xl mb-4">🎉</p>
+                <p className="text-xl font-black text-white mb-2 font-pretendard">모든 문항 완료!</p>
+                <p className="text-sm text-white/50">선생님이 세션을 종료할 때까지 기다려주세요.</p>
               </>
             ) : (
-              /* 다음 문항 대기 */
               <>
-                <p className="text-lg font-semibold text-gray-700 mb-2">다음 문항 대기 중...</p>
-                <p className="text-sm text-gray-400">선생님이 다음 문제를 준비 중입니다.</p>
-                <div className="mt-6 flex justify-center">
-                  <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-200 border-t-blue-600" />
+                <p className="text-4xl mb-4">⏳</p>
+                <p className="text-xl font-black text-white mb-2 font-pretendard">다음 문항 대기 중...</p>
+                <p className="text-sm text-white/50">선생님이 다음 문제를 준비 중입니다.</p>
+                <div className="mt-6 flex justify-center gap-2">
+                  {[0, 1, 2].map((i) => (
+                    <div
+                      key={i}
+                      className="w-2.5 h-2.5 rounded-full bg-brand animate-bounce"
+                      style={{ animationDelay: `${i * 0.2}s` }}
+                    />
+                  ))}
                 </div>
               </>
             )}

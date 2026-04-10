@@ -1,3 +1,7 @@
 export default function StudentLayout({ children }: { children: React.ReactNode }) {
-  return <>{children}</>;
+  return (
+    <div className="min-h-screen bg-student-bg font-pretendard">
+      {children}
+    </div>
+  );
 }

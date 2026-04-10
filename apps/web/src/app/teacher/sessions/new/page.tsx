@@ -55,7 +55,7 @@ export default function NewSessionPage() {
       <h1 className="text-2xl font-bold mb-6">새 세션 만들기</h1>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label htmlFor="title" className="block text-sm font-medium mb-1">
+          <label htmlFor="title" className="block text-sm font-medium text-slate-700 mb-1">
             수업 제목 <span className="text-red-500">*</span>
           </label>
           <input
@@ -63,14 +63,14 @@ export default function NewSessionPage() {
             type="text"
             value={form.title}
             onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
-            className="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full border border-slate-300 bg-white rounded-lg px-3 py-2 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-400"
             placeholder="예: 피타고라스 정리"
           />
           {errors.title && <p className="text-red-500 text-sm mt-1">{errors.title}</p>}
         </div>
 
         <div>
-          <label htmlFor="subject" className="block text-sm font-medium mb-1">
+          <label htmlFor="subject" className="block text-sm font-medium text-slate-700 mb-1">
             과목 <span className="text-red-500">*</span>
           </label>
           <input
@@ -78,14 +78,14 @@ export default function NewSessionPage() {
             type="text"
             value={form.subject}
             onChange={e => setForm(f => ({ ...f, subject: e.target.value }))}
-            className="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full border border-slate-300 bg-white rounded-lg px-3 py-2 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-400"
             placeholder="예: 수학"
           />
           {errors.subject && <p className="text-red-500 text-sm mt-1">{errors.subject}</p>}
         </div>
 
         <div>
-          <label htmlFor="grade" className="block text-sm font-medium mb-1">
+          <label htmlFor="grade" className="block text-sm font-medium text-slate-700 mb-1">
             학년 <span className="text-red-500">*</span>
           </label>
           <input
@@ -93,7 +93,7 @@ export default function NewSessionPage() {
             type="text"
             value={form.grade}
             onChange={e => setForm(f => ({ ...f, grade: e.target.value }))}
-            className="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full border border-slate-300 bg-white rounded-lg px-3 py-2 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-400"
             placeholder="예: 고1"
           />
           {errors.grade && <p className="text-red-500 text-sm mt-1">{errors.grade}</p>}
@@ -106,7 +106,7 @@ export default function NewSessionPage() {
         <button
           type="submit"
           disabled={submitting}
-          className="w-full bg-blue-600 text-white py-2 rounded font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full bg-orange-500 text-white py-3 min-h-[44px] rounded-xl font-semibold border-b-4 border-orange-700 active:border-b-0 active:translate-y-1 transition-all duration-100 hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
         >
           {submitting ? '생성 중...' : '세션 만들기'}
         </button>

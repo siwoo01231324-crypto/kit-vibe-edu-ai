@@ -570,6 +570,75 @@ Issue #31 교사 대시보드 세션 목록 + 실시간 집계 차트 구현 (IU
 - 순수 함수 유틸은 의존성이 없어 TDD 사이클이 가장 빠름 — 테스트→구현→JSDoc 전 과정이 단일 executor로 완결
 - `Math.max(MIN_SCORE, Math.round(...))` 패턴으로 하한 보장을 한 줄로 표현 가능
 
+### 이슈 #56 — 전체 UI/UX 디자인 고도화 (게이미피케이션)
+
+### 사용 도구
+- Claude Code (Claude Sonnet 4.6) — ralph 모드 (executor + architect 멀티 에이전트)
+- ui-ux-pro-max 스킬 — 디자인 시스템 쿼리
+- web-research-specialist 에이전트 — AI slop 패턴 리서치
+
+### 주요 프롬프트 및 결과
+
+**프롬프트 1**: "ai slop 검색해보고 클로드 특유 냄새 안나게 색상 선정 고려해"
+- AI 응답: #4F46E5(indigo) = Tailwind 기본값, Claymorphism = 클리셰 확인 → 전면 교체
+- 채택: Vivid Orange #F97316 + Kahoot 4색 답안 블록 + 다크 배경 #0F172A
+
+**프롬프트 2**: UI/UX 구현 전체 (ralph 모드 자율 실행)
+- 구현 완료: 9개 파일 수정, canvas-confetti 설치, TypeScript 에러 3개 수정(pre-existing)
+- Architect 검증: REJECTED(Leaderboard indigo 잔존) → 수정 후 APPROVED
+
+### AI 기여 영역
+- `tailwind.config.ts` — brand/correct/wrong/student-bg/score-text 컬러 시스템, Pretendard/Space Grotesk 폰트, burst-scale/shake-x/float-up keyframe
+- `globals.css` — 폰트 import, keyframe 정의, prefers-reduced-motion 가드
+- `(student)/quiz/[sessionId]/page.tsx` — 다크 배경, 4색 Kahoot 답안 블록, burst/shake 피드백, float-up 점수, confetti(dynamic import)
+- `(student)/layout.tsx`, `join/page.tsx`, `join/[code]/page.tsx`, `waiting/page.tsx` — 다크 테마 통일
+- `teacher/live/LiveSessionClient.tsx` — 라이트 카드 + 브랜드 버튼 통일
+- `components/quiz/Leaderboard.tsx` — 다크 테마 + 브랜드 오렌지 (indigo 완전 제거)
+- `lib/anthropic.ts`, `hooks/useQuestions.ts` — pre-existing TypeScript 에러 수정
+
+### 인간 주도 영역
+- "AI slop" 방지 방향성 지시 ("클로드 특유 냄새 안나게")
+- 최종 검토 및 커밋 승인
+
+### 오늘의 인사이트
+- AI가 추천한 #4F46E5 indigo는 Tailwind 기본값 → Tailwind UI 튜토리얼 데이터 과잉 학습 결과
+- Claymorphism도 2023 피크, "다음 glassmorphism" 취급 — Kahoot/Duolingo처럼 기능적 색상 코딩이 더 효과적
+- git worktree 환경에서 node_modules 심볼릭 링크 이슈 → npm install로 해결
+
+### 이슈 #56 (2차) — 대시보드 SPA + 피드백 복원
+
+### 사용 도구
+- Claude Code (Claude Sonnet 4.6) — 직접 구현 (단일 에이전트)
+
+### 주요 프롬프트 및 결과
+
+**프롬프트 3**: "왼쪽 세션 누르면 오른쪽 영역에 내용 나오게 / 문항 편집·라이브·인사이트도 대시보드 섹션에서 작동"
+- AI 응답: `?session=<id>&view=<view>` 쿼리 파라미터 기반 SPA 패턴으로 변환. SessionSidebar 링크 + renderContent() 분기
+- 채택: 채택 (사이드바 항상 보이는 레이아웃 유지)
+
+**프롬프트 4**: "피드백전송 실패한다 — RLS policy violation"
+- AI 응답: 학생은 unauthenticated → `/api/thumbs` 라우트 생성, service role key로 RLS 우회
+- 채택: 채택
+
+**프롬프트 5**: "AI 다음 세션 만들어주는 기능 없어졌다"
+- AI 응답: git log에서 `326afab` 커밋 복원 — from-draft/preview, from-draft/route, DraftSessionConfirmModal, draft-questions.ts
+- 채택: 채택
+
+### AI 기여 영역
+- `teacher/dashboard/page.tsx` — multi-view server component (edit/live/insights/default 분기)
+- `components/dashboard/SessionSidebar.tsx` — `/teacher/dashboard?session=<id>` 링크, selectedId orange highlight
+- `components/dashboard/SessionDetailClient.tsx` — thumbsFeedbacks prop 추가, 피드백 패널 인라인, 링크 쿼리파라미터 방식
+- `app/api/thumbs/route.ts` — createAdminClient로 RLS 우회 INSERT
+- `app/api/sessions/from-draft/route.ts`, `preview/route.ts` — AI 세션 생성 복원
+- `lib/prompts/draft-questions.ts` — DRAFT_QUESTIONS_TOOL schema + buildDraftQuestionsPrompt
+- `InsightsContent.tsx` — 대시보드 내 인라인 렌더용 분리, draftRef 자동 스크롤
+- `components/dashboard/ClassDraftPanel.tsx` — "AI 세션 생성" 버튼 + DraftSessionConfirmModal 연결
+
+### 인간 주도 영역
+- RLS 우회 결정 (service role key 사용 승인)
+- SPA 패턴 방향성 지시 ("사이드바 있는 섹션에서 계속 움직이게")
+- 복원 대상 파일 범위 확인
+
 ---
 
 ### 이슈 #62 — 수업 초안에서 다음 세션 자동 생성

@@ -32,23 +32,23 @@ export function ClassDraftPanel({ content, sourceSessionId }: Props) {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold">수업 초안</h2>
+        <h2 className="text-lg font-semibold text-slate-800">수업 초안</h2>
         <div className="flex gap-2">
           <button
             onClick={handleCopy}
-            className="rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 active:bg-gray-100"
+            className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50 active:bg-slate-100 cursor-pointer"
           >
             {copied ? '복사됨!' : '복사'}
           </button>
           <button
             onClick={() => setModalOpen(true)}
-            className="rounded-md bg-blue-600 px-3 py-1.5 text-sm font-medium text-white shadow-sm hover:bg-blue-700"
+            className="rounded-lg bg-orange-500 px-3 py-1.5 text-sm font-medium text-white border-b-4 border-orange-700 active:border-b-0 active:translate-y-1 transition-all duration-100 hover:bg-orange-600 cursor-pointer"
           >
             AI 세션 생성
           </button>
         </div>
       </div>
-      <div className="prose prose-sm max-w-none rounded-lg border bg-white p-4">
+      <div className="prose prose-sm max-w-none rounded-xl border border-slate-200 bg-white p-4">
         <Markdown>{content}</Markdown>
       </div>
 

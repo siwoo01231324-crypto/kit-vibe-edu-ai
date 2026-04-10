@@ -71,6 +71,7 @@ export function useQuestions(sessionId: string, initial: QuestionRow[]) {
     if (idx <= 0) return
     const a = questions[idx]
     const b = questions[idx - 1]
+    if (!a || !b) return
     await supabase.from('questions').update({ question_order: b.question_order }).eq('id', a.id)
     await supabase.from('questions').update({ question_order: a.question_order }).eq('id', b.id)
     setQuestions(prev => {
@@ -86,6 +87,7 @@ export function useQuestions(sessionId: string, initial: QuestionRow[]) {
     if (idx < 0 || idx >= questions.length - 1) return
     const a = questions[idx]
     const b = questions[idx + 1]
+    if (!a || !b) return
     await supabase.from('questions').update({ question_order: b.question_order }).eq('id', a.id)
     await supabase.from('questions').update({ question_order: a.question_order }).eq('id', b.id)
     setQuestions(prev => {

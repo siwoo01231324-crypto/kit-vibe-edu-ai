@@ -62,13 +62,13 @@ function QuestionForm({ initial = EMPTY_DRAFT, onSave, onCancel }: QuestionFormP
   }
 
   return (
-    <form onSubmit={handleSubmit} className="border rounded p-4 bg-gray-50 space-y-3">
+    <form onSubmit={handleSubmit} className="border border-slate-200 rounded-xl p-4 bg-slate-50 space-y-3">
       <div>
         <label className="block text-sm font-medium mb-1">문제 내용 <span className="text-red-500">*</span></label>
         <textarea
           value={draft.content}
           onChange={e => setDraft(d => ({ ...d, content: e.target.value }))}
-          className="w-full border rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full border border-slate-300 bg-white rounded-lg px-3 py-2 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-400"
           rows={2}
           placeholder="문제를 입력하세요"
         />
@@ -87,10 +87,10 @@ function QuestionForm({ initial = EMPTY_DRAFT, onSave, onCancel }: QuestionFormP
               <button
                 type="button"
                 onClick={() => setDraft(d => ({ ...d, correct_answer: idx }))}
-                className={`shrink-0 w-7 h-7 rounded-full border-2 flex items-center justify-center text-xs font-bold transition-colors ${
+                className={`shrink-0 w-7 h-7 rounded-full border-2 flex items-center justify-center text-xs font-bold transition-colors cursor-pointer ${
                   isCorrect
                     ? 'border-green-500 bg-green-500 text-white'
-                    : 'border-gray-300 text-gray-400 hover:border-green-400'
+                    : 'border-slate-300 text-slate-400 hover:border-green-400'
                 }`}
                 title="정답으로 설정"
               >
@@ -104,7 +104,7 @@ function QuestionForm({ initial = EMPTY_DRAFT, onSave, onCancel }: QuestionFormP
                 className={`flex-1 border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 transition-colors ${
                   isCorrect
                     ? 'border-green-400 bg-green-50 focus:ring-green-400'
-                    : 'border-gray-300 focus:ring-blue-500'
+                    : 'border-slate-300 focus:ring-orange-400'
                 }`}
                 placeholder={`보기 ${idx + 1}`}
               />
@@ -112,7 +112,7 @@ function QuestionForm({ initial = EMPTY_DRAFT, onSave, onCancel }: QuestionFormP
                 <button
                   type="button"
                   onClick={() => removeOption(idx)}
-                  className="text-gray-300 hover:text-red-400 text-lg leading-none px-1"
+                  className="text-slate-300 hover:text-red-400 text-lg leading-none px-1 cursor-pointer"
                   title="삭제"
                 >
                   ×
@@ -125,7 +125,7 @@ function QuestionForm({ initial = EMPTY_DRAFT, onSave, onCancel }: QuestionFormP
           <button
             type="button"
             onClick={addOption}
-            className="text-blue-500 hover:text-blue-700 text-sm mt-1"
+            className="text-orange-500 hover:text-orange-700 text-sm mt-1 cursor-pointer"
           >
             + 보기 추가
           </button>
@@ -138,13 +138,13 @@ function QuestionForm({ initial = EMPTY_DRAFT, onSave, onCancel }: QuestionFormP
         <button
           type="button"
           onClick={onCancel}
-          className="px-3 py-1 text-sm border rounded hover:bg-gray-100"
+          className="px-3 py-1 text-sm border border-slate-300 rounded-lg text-slate-600 hover:bg-slate-50 cursor-pointer"
         >
           취소
         </button>
         <button
           type="submit"
-          className="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
+          className="px-3 py-1 text-sm bg-orange-500 text-white rounded-lg hover:bg-orange-600 cursor-pointer"
         >
           저장
         </button>
@@ -178,16 +178,16 @@ function QuestionCard({ question, index, total, onMoveUp, onMoveDown, onDelete, 
   }
 
   return (
-    <div className="border rounded p-4 bg-white">
+    <div className="border border-slate-200 rounded-xl p-4 bg-white shadow-sm">
       <div className="flex items-start justify-between gap-2">
         <div className="flex-1">
-          <p className="text-sm font-medium text-gray-400 mb-1">문항 {index + 1}</p>
-          <p className="font-medium">{question.content}</p>
+          <p className="text-sm font-medium text-slate-400 mb-1">문항 {index + 1}</p>
+          <p className="font-medium text-slate-800">{question.content}</p>
           <ul className="mt-2 space-y-1">
             {options.map((opt, i) => (
               <li
                 key={i}
-                className={`text-sm px-2 py-1 rounded ${i === question.correct_answer ? 'bg-green-50 text-green-700 font-medium' : 'text-gray-600'}`}
+                className={`text-sm px-2 py-1 rounded ${i === question.correct_answer ? 'bg-green-50 text-green-700 font-medium' : 'text-slate-600'}`}
               >
                 {i === question.correct_answer ? '✓ ' : ''}{opt}
               </li>
@@ -198,26 +198,26 @@ function QuestionCard({ question, index, total, onMoveUp, onMoveDown, onDelete, 
           <button
             onClick={onMoveUp}
             disabled={index === 0}
-            className="text-xs border rounded px-2 py-1 hover:bg-gray-50 disabled:opacity-30"
+            className="text-xs border border-slate-200 rounded-lg px-2 py-1 hover:bg-slate-50 disabled:opacity-30 cursor-pointer"
           >
             위
           </button>
           <button
             onClick={onMoveDown}
             disabled={index === total - 1}
-            className="text-xs border rounded px-2 py-1 hover:bg-gray-50 disabled:opacity-30"
+            className="text-xs border border-slate-200 rounded-lg px-2 py-1 hover:bg-slate-50 disabled:opacity-30 cursor-pointer"
           >
             아래
           </button>
           <button
             onClick={() => setEditing(true)}
-            className="text-xs border rounded px-2 py-1 hover:bg-gray-50 text-blue-600"
+            className="text-xs border border-slate-200 rounded-lg px-2 py-1 hover:bg-slate-50 text-orange-500 cursor-pointer"
           >
             편집
           </button>
           <button
             onClick={onDelete}
-            className="text-xs border rounded px-2 py-1 hover:bg-gray-50 text-red-500"
+            className="text-xs border border-slate-200 rounded-lg px-2 py-1 hover:bg-slate-50 text-red-500 cursor-pointer"
           >
             삭제
           </button>
@@ -244,7 +244,7 @@ export function QuestionEditor({ sessionId, initialQuestions }: QuestionEditorPr
         {!adding && (
           <button
             onClick={() => setAdding(true)}
-            className="bg-blue-600 text-white px-3 py-1.5 text-sm rounded hover:bg-blue-700"
+            className="bg-orange-500 text-white px-3 py-1.5 text-sm rounded-lg hover:bg-orange-600 cursor-pointer"
           >
             + 문항 추가
           </button>

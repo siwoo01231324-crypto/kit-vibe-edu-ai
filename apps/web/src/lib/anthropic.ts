@@ -33,7 +33,7 @@ export async function callClaude(params: {
     });
 
   const isRetryable = (error: unknown): boolean => {
-    if (error instanceof Anthropic.APIStatusError) {
+    if (error instanceof Anthropic.APIError) {
       return error.status === 429 || error.status >= 500;
     }
     return false;
@@ -42,7 +42,7 @@ export async function callClaude(params: {
   try {
     const response = await request();
     const block = response.content[0];
-    if (block.type !== 'text') {
+    if (!block || block.type !== 'text') {
       throw new Error('Claude API 호출 실패');
     }
     return block.text;
@@ -55,7 +55,7 @@ export async function callClaude(params: {
     try {
       const response = await request();
       const block = response.content[0];
-      if (block.type !== 'text') {
+      if (!block || block.type !== 'text') {
         throw new Error('Claude API 호출 실패');
       }
       return block.text;

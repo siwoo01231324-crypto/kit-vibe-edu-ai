@@ -34,11 +34,11 @@ export default async function EditSessionPage({ params }: Props) {
       <div className="mb-6 flex items-start justify-between">
         <div>
           <h1 className="text-2xl font-bold">{session.title}</h1>
-          <p className="text-sm text-gray-500 mt-1">{session.subject} · {session.grade}</p>
+          <p className="text-sm text-slate-500 mt-1">{session.subject} · {session.grade}</p>
         </div>
         <Link
           href={`/teacher/sessions/${id}/live`}
-          className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700"
+          className="px-4 py-2 bg-orange-500 text-white rounded-lg text-sm font-medium hover:bg-orange-600 cursor-pointer"
         >
           라이브 세션 열기
         </Link>
