@@ -141,12 +141,13 @@ describe.skipIf(skipFlag)('thumbs_feedback RLS & unique', () => {
     expect(dupErr).not.toBeNull();
   });
 
-  it('TEST-IU6-I03: inactive(ended) 세션에 INSERT 시도 → RLS 거절', async () => {
+  it('TEST-IU6-I03: inactive(ended) 세션에 INSERT 시도 → RLS 허용 (migration _allow_ended)', async () => {
+    // migration 20260409000005_thumbs_feedback_allow_ended: ended 세션도 anon INSERT 허용
     const { error } = await anonClient.from('thumbs_feedback').insert({
       session_id: inactiveSessionId,
       nickname: '학생C',
       type: 'up',
     });
-    expect(error).not.toBeNull();
+    expect(error).toBeNull();
   });
 });

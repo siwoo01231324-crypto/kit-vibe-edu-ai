@@ -44,7 +44,12 @@ describe.skipIf(skip)('student join — sessions 익명 조회', () => {
   }
 
   beforeAll(async () => {
-    // teacher 행이 없으면 삽입 (FK 제약 충족)
+    // teachers.id → auth.users(id) FK: auth user 먼저 생성 후 teacher 행 삽입
+    await admin.auth.admin.createUser({
+      user_id: teacherId,
+      email: 'testteacher@test.invalid',
+      email_confirm: true,
+    }).catch(() => {}) // 이미 존재하면 무시
     await admin
       .from('teachers')
       .upsert({ id: teacherId, name: 'Test Teacher', email: 'testteacher@test.invalid' }, { onConflict: 'id' })
@@ -54,6 +59,8 @@ describe.skipIf(skip)('student join — sessions 익명 조회', () => {
     if (createdSessionIds.length) {
       await admin.from('sessions').delete().in('id', createdSessionIds)
     }
+    await admin.from('teachers').delete().eq('id', teacherId).catch(() => {})
+    await admin.auth.admin.deleteUser(teacherId).catch(() => {})
   })
 
   // TEST-IU1-I01
