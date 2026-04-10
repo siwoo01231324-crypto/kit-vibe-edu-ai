@@ -12,7 +12,7 @@ export function generateJoinCode(): string {
   return code;
 }
 
-export async function generateUniqueJoinCode(supabase: SupabaseClient): Promise<string> {
+export async function generateUniqueJoinCode(supabase: SupabaseClient<any>): Promise<string> {
   for (let attempt = 0; attempt < MAX_RETRY; attempt++) {
     const code = generateJoinCode();
     const { data } = await supabase
