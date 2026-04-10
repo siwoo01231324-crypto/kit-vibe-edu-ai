@@ -680,6 +680,32 @@ Issue #31 교사 대시보드 세션 목록 + 실시간 집계 차트 구현 (IU
 - 마크다운(교안)과 structured_questions(퀴즈 스키마)는 생성 시점만 같을 뿐 생명주기가 다름 — 한 API에 묶으면 파싱 실패가 UI까지 전파됨
 - Preview(AI 호출, 미리보기) → Confirm(DB만, 원자적 생성) 2-step 패턴이 UX와 신뢰성 모두 확보
 
+### 이슈 #40 — GitHub Actions CI 파이프라인
+
+### 사용 도구
+- Claude Code (Claude Sonnet 4.6) — `/ri` 커맨드로 플랜 작성 + 직접 구현
+
+### 주요 프롬프트 및 결과
+
+**프롬프트 1**: `/ri 플랜짜고 구현해`
+- AI 응답 요약: 프로젝트 구조 탐색(package.json, playwright/vitest 설정, supabase/ 디렉토리 확인) → 01_plan.md 구체화 → ci.yml 3-job 병렬 구성 + check_forbidden_files.py CI 모드 추가
+- 채택 여부: 채택
+
+### AI 기여 영역
+- `.github/workflows/ci.yml` — lint/test/e2e 3개 Job 병렬 실행 YAML 작성
+- `scripts/check_forbidden_files.py` — CI 환경에서 `git ls-files` 검사 모드 추가 (CI env var 감지)
+- `.github/workflows/.ai.md` — 워크플로우 디렉토리 문서 신규 작성
+- `docs/work/active/000040-github-actions-ci/01_plan.md` — 구현 계획 구체화 (전제조건, 파일 목록, 단계별 순서, Guardrails)
+
+### 인간 주도 영역
+- GitHub Secrets 등록 (ANTHROPIC_API_KEY 선택, PROJECT_TOKEN 필수) — 수동 작업 필요
+- Branch protection rule 설정 (Settings → Branches → master, status checks: lint/test/e2e) — 수동 작업 필요
+- AI 생성 YAML 최종 검토 후 커밋 승인 (불변식 2)
+
+### 오늘의 인사이트
+- `check_forbidden_files.py`의 `git diff --cached`는 CI에서 항상 빈 결과 반환 → CI env var로 분기 필요
+- `supabase status -o env` 출력 키(API_URL, ANON_KEY)와 vitest 기대 변수명(NEXT_PUBLIC_SUPABASE_URL)이 달라 GITHUB_ENV 매핑 단계 필수
+
 ---
 
 ## 04/11 (토) AI 활용 로그
