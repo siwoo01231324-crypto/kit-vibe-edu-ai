@@ -24,43 +24,56 @@ export async function callClaude(params: {
 }): Promise<string> {
   const { system, user, maxTokens = 1024 } = params;
 
-  const request = async () =>
-    client.messages.create({
+  // MOCK_CLAUDE=1 환경에서 실제 API 호출 없이 고정 응답 반환 (E2E 테스트용)
+  if (process.env.MOCK_CLAUDE === '1') {
+    const isInsight = system.includes('top_weak_concepts') || system.includes('인사이트');
+    if (isInsight) {
+      return JSON.stringify({
+        top_weak_concepts: [
+          { concept: '분수 연산', correct_rate: 0.35, evidence: '3문항 중 2문항 오답률 65%' },
+          { concept: '방정식 풀기', correct_rate: 0.40, evidence: '오답 패턴 집중' },
+        ],
+        strong_concepts: [
+          { concept: '기본 덧셈', correct_rate: 0.90 },
+        ],
+        next_class_focus: [
+          { focus: '분수 연산 집중', reason: '취약 개념 우선', suggested_activity: '분수 카드 게임' },
+        ],
+      });
+    }
+    return '# 수업 초안\n\n## 도입 (5분)\n분수 복습\n\n## 전개 (30분)\n연산 연습\n\n## 정리 (10분)\n형성평가';
+  }
+
+  const FAILURE = new Error('Claude API 호출 실패');
+
+  const requestText = async (): Promise<string> => {
+    const response = await client.messages.create({
       model: MODEL,
       max_tokens: maxTokens,
       system,
       messages: [{ role: 'user', content: user }],
     });
-
-  const isRetryable = (error: unknown): boolean => {
-    if (error instanceof Anthropic.APIError) {
-      return error.status === 429 || error.status >= 500;
-    }
-    return false;
-  };
-
-  try {
-    const response = await request();
     const block = response.content[0];
     if (!block || block.type !== 'text') {
-      throw new Error('Claude API 호출 실패');
+      throw FAILURE;
     }
     return block.text;
+  };
+
+  const isRetryable = (error: unknown): boolean =>
+    error instanceof Anthropic.APIError && (error.status === 429 || error.status >= 500);
+
+  try {
+    return await requestText();
   } catch (firstError) {
     if (!isRetryable(firstError)) {
-      throw new Error('Claude API 호출 실패');
+      throw FAILURE;
     }
-
     // 1회 재시도
     try {
-      const response = await request();
-      const block = response.content[0];
-      if (!block || block.type !== 'text') {
-        throw new Error('Claude API 호출 실패');
-      }
-      return block.text;
+      return await requestText();
     } catch {
-      throw new Error('Claude API 호출 실패');
+      throw FAILURE;
     }
   }
 }

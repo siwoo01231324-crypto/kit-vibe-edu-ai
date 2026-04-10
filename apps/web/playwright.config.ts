@@ -9,12 +9,17 @@ export default defineConfig({
   use: {
     baseURL: 'http://localhost:3000',
     trace: 'on-first-retry',
+    video: process.env.RECORD_VIDEO ? 'on' : 'off',
   },
   projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
   webServer: {
     command: 'npm run dev',
-    url: 'http://localhost:3000',
+    url: process.env.BASE_URL ?? 'http://localhost:3000',
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
+    ignoreHTTPSErrors: true,
+    env: {
+      MOCK_CLAUDE: '1',
+    },
   },
 });
