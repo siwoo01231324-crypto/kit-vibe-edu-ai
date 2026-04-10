@@ -992,6 +992,36 @@ Issue #31 교사 대시보드 세션 목록 + 실시간 집계 차트 구현 (IU
 
 ---
 
+### #41 시드 데이터 + 데모 패키징 (2026-04-11)
+
+**사용 도구**:
+- Claude Code (Claude Sonnet 4.6) + OMC ralplan (Planner → Architect → Critic 합의 2회 루프)
+
+**주요 작업**: Vercel 배포·데모 준비를 위한 파일 패키징
+
+**ralplan 합의 과정**:
+- Planner v1 → Architect 지적 (UNIQUE 충돌, ai_insights 시드 금지, psql 변수화)
+- Critic ITERATE (5건 수정 지시) → Planner v2 반영 → Architect APPROVE → Critic APPROVE
+
+**AI 기여 영역**:
+- `supabase/seed.sql` — psql 변수 템플릿, sessions/questions/responses만 시드 (ai_insights 제외)
+- `supabase/fallback-ai-seed.sql` — AI 장애 시 폴백 전용 (ON CONFLICT DO NOTHING)
+- `docs/demo/manual-deploy-guide.md` — Supabase 원격 + Vercel 배포 단계별 가이드
+- `docs/demo/demo-script.md` — 3분 데모 타임라인 + 폴백 시나리오
+- `docs/demo/.ai.md` — 디렉토리 목적·구조 문서
+- `README.md` — 라이브 데모 섹션 + 기술 스택 추가
+- `apps/web/.env.example` — `NEXT_PUBLIC_BASE_URL` 추가
+
+**인간 주도 영역**:
+- Supabase 원격 프로젝트 생성 + `supabase db push` 실행
+- Vercel 프로젝트 생성 + 환경변수 5개 입력
+- seed.sql 실행 (교사 UUID 주입)
+- 라이브 URL smoke test (3분 플로우 검증)
+- 백업 영상 녹화
+- demo-script.md 인간 검토 및 서명
+
+---
+
 ## 2026-04-11
 
 ### 브랜딩 네이밍 UI 일괄 적용 (2026-04-11) — 이슈 #67

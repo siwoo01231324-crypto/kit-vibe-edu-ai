@@ -1,8 +1,63 @@
-# siw-claude-template
+# kit-vibe-edu-ai
 
-Claude Code + GitHub Issues 기반 개발 워크플로우 템플릿.
+교사의 수업 피드백 루프를 AI로 자동화하는 서비스.
+퀴즈 수집 → AI 분석 → 수업 초안 생성까지 한 번에.
 
-이슈 생성 → 워크트리 분기 → 구현 → PR → 정리까지 모든 단계를 슬래시 커맨드로 자동화합니다.
+## 라이브 데모
+
+> **URL**: `https://<your-vercel-url>.vercel.app`  
+> 배포 후 실제 URL로 업데이트 예정
+
+3분 데모 플로우: 교사 로그인 → 세션 확인 → AI 인사이트 생성 → 수업 초안 생성
+
+- 데모 스크립트: [`docs/demo/demo-script.md`](docs/demo/demo-script.md)
+- 배포 가이드: [`docs/demo/manual-deploy-guide.md`](docs/demo/manual-deploy-guide.md)
+
+---
+
+## 핵심 기능
+
+| 기능 | 설명 |
+|------|------|
+| 실시간 퀴즈 | join 코드로 학생 입장, 응답 실시간 집계 |
+| AI 인사이트 | 응답 데이터 분석 → 약점 개념 자동 탐지 |
+| 수업 초안 | 인사이트 기반 다음 수업 계획 자동 생성 |
+| 교사 대시보드 | 세션·문항·응답 현황 한눈에 확인 |
+
+## 기술 스택
+
+- **Frontend**: Next.js 14, TypeScript, Tailwind CSS
+- **Backend**: Supabase (PostgreSQL + Realtime + Auth)
+- **AI**: Anthropic Claude Haiku
+- **Deploy**: Vercel
+
+---
+
+## 로컬 실행
+
+```bash
+# 1. 의존성 설치
+cd apps/web && npm install
+
+# 2. 환경변수 설정
+cp .env.example .env.local
+# .env.local 에 실제 값 입력
+
+# 3. Supabase 로컬 시작
+supabase start
+
+# 4. 개발 서버
+npm run dev
+```
+
+자세한 배포 가이드: [`docs/demo/manual-deploy-guide.md`](docs/demo/manual-deploy-guide.md)
+
+---
+
+## 개발 워크플로우
+
+Claude Code + GitHub Issues 기반.
+이슈 생성 → 워크트리 분기 → 구현 → PR → 정리까지 슬래시 커맨드로 자동화합니다.
 
 ---
 
