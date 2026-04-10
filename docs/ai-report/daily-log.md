@@ -696,6 +696,12 @@ Issue #31 교사 대시보드 세션 목록 + 실시간 집계 차트 구현 (IU
 - `scripts/check_forbidden_files.py` — CI 환경에서 `git ls-files` 검사 모드 추가 (CI env var 감지)
 - `.github/workflows/.ai.md` — 워크플로우 디렉토리 문서 신규 작성
 - `docs/work/active/000040-github-actions-ci/01_plan.md` — 구현 계획 구체화 (전제조건, 파일 목록, 단계별 순서, Guardrails)
+- `apps/web/package.json` + `package-lock.json` — `@supabase/ssr` 0.5.2 → 0.10.2 업그레이드 (never cascade 근본 원인 해소)
+- `apps/web/src/types/database.ts` — Views/Functions/Enums/CompositeTypes `Record<string, never>` 변환 + Relationships 배열 추가
+- `apps/web/tsconfig.json` — `tests/` exclude 추가 (tsc 빌드 대상 제외)
+- `apps/web/src/app/api/class-draft/generate/route.ts` — InsightResult 타입 import 추가
+- `apps/web/tests/integration/student-join.test.ts` — afterAll `.catch()` → try/catch 수정 (PostgrestBuilder는 Promise 아님)
+- `apps/web/tests/integration/student-quiz.test.ts` — anon INSERT `.select()` 제거 (RLS SELECT 권한 없음), Realtime 테스트 CI skip 추가
 
 ### 인간 주도 영역
 - GitHub Secrets 등록 (ANTHROPIC_API_KEY 선택, PROJECT_TOKEN 필수) — 수동 작업 필요
@@ -705,6 +711,11 @@ Issue #31 교사 대시보드 세션 목록 + 실시간 집계 차트 구현 (IU
 ### 오늘의 인사이트
 - `check_forbidden_files.py`의 `git diff --cached`는 CI에서 항상 빈 결과 반환 → CI env var로 분기 필요
 - `supabase status -o env` 출력 키(API_URL, ANON_KEY)와 vitest 기대 변수명(NEXT_PUBLIC_SUPABASE_URL)이 달라 GITHUB_ENV 매핑 단계 필수
+- `@supabase/ssr@0.5.2`가 `supabase-js@2.103.0`에 없는 경로(`dist/module/lib/types`)를 import → 전체 타입이 `never`로 붕괴. `@supabase/ssr@0.10.2` 업그레이드로 해소
+- `PostgrestBuilder`는 PromiseLike이지만 완전한 Promise 아님 → `.catch()` 직접 호출 불가, `try/catch` 필요
+- anon은 responses INSERT만 가능, SELECT 불가 → INSERT 후 `.select()` 체이닝 시 42501 에러
+- Supabase Realtime postgres_changes는 GitHub Actions CI에서 불안정 → `it.skipIf(process.env.CI === 'true')` 패턴 적용
+- `npm ci`는 lock 파일과 package.json 완전 일치 요구 → 다른 레포 lock 파일 복사 불가, 반드시 해당 디렉토리에서 `npm install` 재실행
 
 ---
 
