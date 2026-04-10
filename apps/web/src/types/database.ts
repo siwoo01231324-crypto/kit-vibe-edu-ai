@@ -33,6 +33,7 @@ export type Database = {
           school?: string | null;
           created_at?: string;
         };
+        Relationships: [];
       };
       sessions: {
         Row: {
@@ -71,6 +72,15 @@ export type Database = {
           started_at?: string | null;
           ended_at?: string | null;
         };
+        Relationships: [
+          {
+            foreignKeyName: 'sessions_teacher_id_fkey';
+            columns: ['teacher_id'];
+            isOneToOne: false;
+            referencedRelation: 'teachers';
+            referencedColumns: ['id'];
+          }
+        ];
       };
       questions: {
         Row: {
@@ -100,6 +110,15 @@ export type Database = {
           question_order?: number;
           created_at?: string;
         };
+        Relationships: [
+          {
+            foreignKeyName: 'questions_session_id_fkey';
+            columns: ['session_id'];
+            isOneToOne: false;
+            referencedRelation: 'sessions';
+            referencedColumns: ['id'];
+          }
+        ];
       };
       responses: {
         Row: {
@@ -135,6 +154,22 @@ export type Database = {
           score?: number;
           submitted_at?: string;
         };
+        Relationships: [
+          {
+            foreignKeyName: 'responses_session_id_fkey';
+            columns: ['session_id'];
+            isOneToOne: false;
+            referencedRelation: 'sessions';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'responses_question_id_fkey';
+            columns: ['question_id'];
+            isOneToOne: false;
+            referencedRelation: 'questions';
+            referencedColumns: ['id'];
+          }
+        ];
       };
       ai_insights: {
         Row: {
@@ -155,6 +190,15 @@ export type Database = {
           insights?: Json;
           created_at?: string;
         };
+        Relationships: [
+          {
+            foreignKeyName: 'ai_insights_session_id_fkey';
+            columns: ['session_id'];
+            isOneToOne: true;
+            referencedRelation: 'sessions';
+            referencedColumns: ['id'];
+          }
+        ];
       };
       class_drafts: {
         Row: {
@@ -175,6 +219,15 @@ export type Database = {
           content?: string;
           created_at?: string;
         };
+        Relationships: [
+          {
+            foreignKeyName: 'class_drafts_session_id_fkey';
+            columns: ['session_id'];
+            isOneToOne: true;
+            referencedRelation: 'sessions';
+            referencedColumns: ['id'];
+          }
+        ];
       };
       thumbs_feedback: {
         Row: {
@@ -201,10 +254,20 @@ export type Database = {
           comment?: string | null;
           created_at?: string;
         };
+        Relationships: [
+          {
+            foreignKeyName: 'thumbs_feedback_session_id_fkey';
+            columns: ['session_id'];
+            isOneToOne: false;
+            referencedRelation: 'sessions';
+            referencedColumns: ['id'];
+          }
+        ];
       };
     };
     Views: Record<string, never>;
     Functions: Record<string, never>;
     Enums: Record<string, never>;
+    CompositeTypes: Record<string, never>;
   };
 };

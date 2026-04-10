@@ -20,8 +20,8 @@ describe.skipIf(skip)('student join — sessions 익명 조회', () => {
   const admin = skip ? null! : createClient<Database>(URL, SRK, opts)
   const anon  = skip ? null! : createClient<Database>(URL, ANON, opts)
 
-  // 테스트용 teacher id (UUID 고정)
-  const teacherId = '00000000-0000-0000-0000-000000000001'
+  // teachers.id → auth.users(id) FK: beforeAll에서 동적 생성
+  let teacherId: string
   const createdSessionIds: string[] = []
 
   async function insertSession(overrides: Partial<Database['public']['Tables']['sessions']['Insert']>) {
@@ -44,16 +44,25 @@ describe.skipIf(skip)('student join — sessions 익명 조회', () => {
   }
 
   beforeAll(async () => {
-    // teacher 행이 없으면 삽입 (FK 제약 충족)
+    // teachers.id → auth.users(id) FK: auth user 먼저 생성 후 반환된 ID로 teacher 행 삽입
+    const { data: userData, error: userErr } = await admin.auth.admin.createUser({
+      email: 'test-student-join@test.invalid',
+      password: 'test-password-join',
+      email_confirm: true,
+    })
+    if (userErr) throw new Error(`auth user 생성 실패: ${userErr.message}`)
+    teacherId = userData.user.id
     await admin
       .from('teachers')
-      .upsert({ id: teacherId, name: 'Test Teacher', email: 'testteacher@test.invalid' }, { onConflict: 'id' })
+      .upsert({ id: teacherId, name: 'Test Teacher', email: 'test-student-join@test.invalid' }, { onConflict: 'id' })
   })
 
   afterAll(async () => {
     if (createdSessionIds.length) {
       await admin.from('sessions').delete().in('id', createdSessionIds)
     }
+    try { await admin.from('teachers').delete().eq('id', teacherId) } catch {}
+    try { await admin.auth.admin.deleteUser(teacherId) } catch {}
   })
 
   // TEST-IU1-I01
