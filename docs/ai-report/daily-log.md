@@ -722,26 +722,62 @@ Issue #31 교사 대시보드 세션 목록 + 실시간 집계 차트 구현 (IU
 ## 04/11 (토) AI 활용 로그
 
 ### 사용 도구
-<!-- TODO: 사용한 AI 도구 기입 -->
+- Claude Code (Claude Sonnet 4.6) + oh-my-claudecode `/ri /plan /fi`
+- ralplan (Planner → Architect → Critic 컨센서스 플래닝)
+- ralph (구현 자동화 루프)
 
 ### 주요 프롬프트 및 결과
 
-**프롬프트 1**: <!-- TODO -->
-- AI 응답 요약:
-- 채택 여부:
-- 수정 내용:
+**이슈 #67 — 브랜드명 Seeya! 적용 및 UI 일괄 교체**
 
-### AI 기여 영역
-<!-- TODO -->
+**프롬프트 1**: `/ri` → 세션 재시작 시 AC 달성 현황 출력 + 플랜 검증
+- AI 응답 요약: AC 0/4 완료, 브랜드명 미확정 상태 파악
+- 채택 여부: 채택
+- 수정 내용: 없음
+
+**프롬프트 2**: `/fi` → 구현 완료 후 커밋 + PR 생성
+- AI 응답 요약: branding-strategy.md Section 4 기준 최종 브랜드명 Seeya 확정, UI 전체 적용
+- 채택 여부: 채택
+- 수정 내용: 없음
+
+### AI 기여 영역 (이슈 #67)
+- `docs/branding/naming-decision.md` — 신규 작성: Seeya(시야) 선택 근거, 탈락 후보(Lumi, Echoo, MirAI) 분석
+- `apps/web/src/app/layout.tsx` — metadata title `Seeya!`, description 교체
+- `apps/web/src/app/page.tsx` — h1 `Seeya!`, 서브타이틀 교체, 기능 뱃지 섹션 제거
+- `apps/web/src/app/login/page.tsx` — 앱명 `Seeya!`
+- `apps/web/src/app/teacher/layout.tsx` — 헤더 앱명 `Seeya!`
+- `apps/web/tests/e2e/smoke.spec.ts` — 정규식 `/Seeya!/i`
+- `.ai.md` 2개 최신화
+
+### AI 기여 영역 (이슈 #69 — 자연어 세션 생성)
+- ralplan 컨센서스 플래닝: Planner → Architect → Critic APPROVE
+- `apps/web/src/lib/prompts/session-parse.ts` — 신규: buildSessionParsePrompt + SessionParseSchema(Zod) + parseSessionParseResponse (questions[] 포함)
+- `apps/web/src/lib/anthropic.ts` — MOCK_CLAUDE session_parse 케이스 추가 (3문항 샘플 응답)
+- `apps/web/src/app/api/sessions/parse-prompt/route.ts` — 신규: POST 엔드포인트 (인증+Zod검증+PARSE_ERROR/API_ERROR)
+- `apps/web/src/app/api/sessions/create-with-content/route.ts` — 신규: 세션+문항 원자적 생성 엔드포인트
+- `apps/web/src/app/teacher/sessions/new/page.tsx` — 자연어 textarea + "AI로 채우기" + 편집 가능 문항 폼 + fallback UI
+- `apps/web/src/components/dashboard/ResponseChart.tsx` — 선택지 텍스트·정답 표시, 문항별 통계
+- `apps/web/src/components/dashboard/SessionDetailClient.tsx` — 참여자수·정답률·오답률 통계 카드
+- `apps/web/src/lib/aggregate.ts` / `dashboard.ts` — correct_answer, nickname 매핑 추가
+- `apps/web/tests/unit/session-parse.test.ts` — 신규: 10개 단위 테스트 (전체 통과, 전체 122/122)
+- `.ai.md` 2개 최신화
 
 ### 인간 주도 영역
-<!-- TODO -->
+- 브랜드명 최종 확정 (Seeya로 결정)
+- 태그라인 카피라이팅 방향 결정
+- 기능 뱃지 섹션 제거 결정
+- 이슈 #69 구현 범위 확정 (questions[] 포함으로 재지시)
+- 대시보드 통계 표시 항목 결정 (정답 개수 제외, 총 응답 표시 제거)
+- 최종 코드 검토 및 커밋 승인
 
 ### 스크린샷
 <!-- TODO -->
 
 ### 오늘의 인사이트
-<!-- TODO -->
+- AI 파싱 응답 maxTokens 512 → 2048로 증가하지 않으면 JSON 중간 잘림 발생 — maxTokens 설정이 구조화 출력에 critical
+- Zod `.coerce.number()` 패턴으로 Claude가 문자열로 반환하는 숫자도 안전하게 파싱 가능
+- `key={sessionData.session.id}` props로 세션 전환 시 클라이언트 컴포넌트 강제 remount — React key 활용이 실시간 상태 동기화 문제를 깔끔히 해결
+- dashboard.ts에서 nickname 누락이 participantCount = 0 버그 유발 — 초기 데이터 매핑 완전성이 realtime 훅 동작에 영향
 
 ---
 

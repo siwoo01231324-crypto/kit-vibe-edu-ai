@@ -140,6 +140,7 @@ export default async function DashboardPage({ searchParams }: Props) {
     // default: detail view
     return (
       <SessionDetailClient
+        key={sessionData.session.id}
         session={sessionData.session}
         questions={sessionData.questions}
         initialResponses={sessionData.responses}

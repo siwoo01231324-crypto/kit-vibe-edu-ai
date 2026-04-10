@@ -26,6 +26,31 @@ export async function callClaude(params: {
 
   // MOCK_CLAUDE=1 환경에서 실제 API 호출 없이 고정 응답 반환 (E2E 테스트용)
   if (process.env.MOCK_CLAUDE === '1') {
+    if (system.includes('session_parse')) {
+      return JSON.stringify({
+        title: '피타고라스 정리',
+        subject: '수학',
+        grade: '고1',
+        questions: [
+          {
+            content: '직각삼각형에서 빗변의 길이가 5, 한 변의 길이가 3일 때 나머지 변의 길이는?',
+            options: ['2', '4', '6', '8'],
+            correct_answer: 1,
+          },
+          {
+            content: '피타고라스 정리를 올바르게 나타낸 것은?',
+            options: ['a + b = c', 'a² + b² = c²', 'a² - b² = c²', 'a × b = c²'],
+            correct_answer: 1,
+          },
+          {
+            content: '빗변의 길이가 10, 한 변의 길이가 6인 직각삼각형의 나머지 변의 길이는?',
+            options: ['6', '7', '8', '9'],
+            correct_answer: 2,
+          },
+        ],
+        missing: [],
+      });
+    }
     const isInsight = system.includes('top_weak_concepts') || system.includes('인사이트');
     if (isInsight) {
       return JSON.stringify({

@@ -7,12 +7,14 @@ export interface Response {
   is_correct: boolean;
   answer: number; // 0-based 선택지 인덱스
   response_time_ms: number;
+  nickname?: string;
 }
 
 export interface Question {
   id: string;
   content: string;
   options: string[];
+  correct_answer?: number; // 0-based 정답 인덱스
 }
 
 export interface GroupedQuestion {
