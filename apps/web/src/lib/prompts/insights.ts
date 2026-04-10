@@ -85,6 +85,8 @@ export function buildInsightsPrompt(
  * @throws SyntaxError - JSON 파싱 실패 시
  */
 export function parseInsightResponse(raw: string): InsightResult {
-  const parsed = JSON.parse(raw);
+  // 코드블록 제거 (```json ... ``` 또는 ``` ... ```)
+  const cleaned = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/, '').trim();
+  const parsed = JSON.parse(cleaned);
   return InsightSchema.parse(parsed);
 }

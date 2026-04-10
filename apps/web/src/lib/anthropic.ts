@@ -33,8 +33,9 @@ export async function callClaude(params: {
     });
 
   const isRetryable = (error: unknown): boolean => {
-    if (error instanceof Anthropic.APIStatusError) {
-      return error.status === 429 || error.status >= 500;
+    if (error && typeof error === 'object' && 'status' in error) {
+      const status = (error as { status: number }).status;
+      return status === 429 || status >= 500;
     }
     return false;
   };
@@ -48,7 +49,7 @@ export async function callClaude(params: {
     return block.text;
   } catch (firstError) {
     if (!isRetryable(firstError)) {
-      throw new Error('Claude API 호출 실패');
+      throw firstError;
     }
 
     // 1회 재시도
@@ -59,8 +60,8 @@ export async function callClaude(params: {
         throw new Error('Claude API 호출 실패');
       }
       return block.text;
-    } catch {
-      throw new Error('Claude API 호출 실패');
+    } catch (retryError) {
+      throw retryError;
     }
   }
 }

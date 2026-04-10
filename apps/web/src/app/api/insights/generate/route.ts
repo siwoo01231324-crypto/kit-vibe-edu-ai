@@ -76,17 +76,19 @@ export async function POST(request: Request) {
   let raw: string;
   try {
     raw = await callClaude({ system, user: userMsg, maxTokens: 2048 });
-  } catch {
-    return Response.json({ error: 'CLAUDE_ERROR' }, { status: 500 });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    return Response.json({ error: 'CLAUDE_ERROR', message }, { status: 500 });
   }
 
   // 7. Parse + zod validate
   let insights: ReturnType<typeof parseInsightResponse>;
   try {
     insights = parseInsightResponse(raw);
-  } catch {
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
     return Response.json(
-      { error: 'PARSE_ERROR', message: 'Claude 응답 파싱 실패' },
+      { error: 'PARSE_ERROR', message },
       { status: 500 },
     );
   }
