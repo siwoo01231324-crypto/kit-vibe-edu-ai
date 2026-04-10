@@ -61,8 +61,8 @@ describe.skipIf(skip)('student join — sessions 익명 조회', () => {
     if (createdSessionIds.length) {
       await admin.from('sessions').delete().in('id', createdSessionIds)
     }
-    await admin.from('teachers').delete().eq('id', teacherId).catch(() => {})
-    await admin.auth.admin.deleteUser(teacherId).catch(() => {})
+    try { await admin.from('teachers').delete().eq('id', teacherId) } catch {}
+    try { await admin.auth.admin.deleteUser(teacherId) } catch {}
   })
 
   // TEST-IU1-I01

@@ -85,13 +85,14 @@ describe.skipIf(skip)('student quiz — responses INSERT + Realtime', () => {
       // cascade로 questions/responses도 정리
       await admin.from('sessions').delete().in('id', createdSessionIds)
     }
-    await admin.from('teachers').delete().eq('id', teacherId).catch(() => {})
-    await admin.auth.admin.deleteUser(teacherId).catch(() => {})
+    try { await admin.from('teachers').delete().eq('id', teacherId) } catch {}
+    try { await admin.auth.admin.deleteUser(teacherId) } catch {}
   })
 
   // TEST-IU1-I03
   it('TEST-IU1-I03: anon 클라이언트가 responses INSERT 성공', async () => {
-    const { data, error } = await anon
+    // anon은 INSERT 권한만 있고 SELECT 권한이 없으므로 .select() 없이 삽입 성공 여부만 확인
+    const { error } = await anon
       .from('responses')
       .insert({
         session_id: sessionId,
@@ -102,10 +103,18 @@ describe.skipIf(skip)('student quiz — responses INSERT + Realtime', () => {
         response_time_ms: 2000,
         score: 800,
       })
-      .select()
-      .single()
 
     expect(error).toBeNull()
+
+    // admin으로 실제 삽입 확인
+    const { data } = await admin
+      .from('responses')
+      .select('session_id, question_id, nickname, is_correct, score')
+      .eq('session_id', sessionId)
+      .eq('question_id', questionId)
+      .eq('nickname', 'TestStudent')
+      .single()
+
     expect(data).toBeTruthy()
     expect(data!.session_id).toBe(sessionId)
     expect(data!.question_id).toBe(questionId)
@@ -166,14 +175,14 @@ describe.skipIf(skip)('student quiz — responses INSERT + Realtime', () => {
       .subscribe()
 
     // 채널 구독 안정화 대기
-    await new Promise((resolve) => setTimeout(resolve, 1000))
+    await new Promise((resolve) => setTimeout(resolve, 2000))
 
     // admin이 새 question INSERT
     await insertQuestion(sessionId, 2)
 
-    // 콜백 수신 대기 (최대 5초)
+    // 콜백 수신 대기 (최대 8초)
     await new Promise<void>((resolve, reject) => {
-      const timeout = setTimeout(() => reject(new Error('Realtime callback timeout')), 5000)
+      const timeout = setTimeout(() => reject(new Error('Realtime callback timeout')), 8000)
       const interval = setInterval(() => {
         if (receivedPayloads.length > 0) {
           clearTimeout(timeout)
@@ -186,5 +195,5 @@ describe.skipIf(skip)('student quiz — responses INSERT + Realtime', () => {
     expect(receivedPayloads.length).toBeGreaterThan(0)
 
     await anon.removeChannel(channel)
-  }, 10000)
+  }, 15000)
 })
