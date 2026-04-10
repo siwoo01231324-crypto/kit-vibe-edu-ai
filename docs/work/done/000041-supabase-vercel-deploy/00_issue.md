@@ -8,9 +8,9 @@ dev-spec §7.3 D6~D7 — 배포 + 데모 시나리오 리허설. dev-spec §7.4 
 
 ## 완료 기준 (AC)
 - [x] `supabase/seed.sql` — 테스트 교사 + 데모 세션 1개 + 문항 5개 + 응답 20개 이상
-- [ ] 원격 Supabase 프로젝트 생성 + `supabase db push` 로 마이그레이션 적용
-- [ ] Vercel 프로젝트 생성 + `master` 자동 배포 연결
-- [ ] Vercel 환경변수 등록 (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `ANTHROPIC_API_KEY`, `NEXT_PUBLIC_BASE_URL`)
+- [x] 원격 Supabase 프로젝트 생성 + `supabase db push` 로 마이그레이션 적용
+- [x] Vercel 프로젝트 생성 + 자동 배포 연결
+- [x] Vercel 환경변수 등록 (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `ANTHROPIC_API_KEY`, `NEXT_PUBLIC_BASE_URL`)
 - [ ] Vercel 라이브 URL 에서 교사 로그인 → 데모 세션 진행 → AI 인사이트 생성 → 수업 초안 생성 3분 이내 완료 검증
 - [ ] 백업 영상 녹화 (네트워크 장애 대비)
 - [x] `docs/demo/demo-script.md` — 3분 데모 스크립트
