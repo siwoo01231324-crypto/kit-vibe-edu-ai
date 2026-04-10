@@ -79,7 +79,6 @@ export function SessionDetailClient({ session, questions, initialResponses }: Pr
         <span className="text-sm text-gray-500">
           총 응답 {responses.length}개
         </span>
-
       </div>
 
       {/* Response chart */}

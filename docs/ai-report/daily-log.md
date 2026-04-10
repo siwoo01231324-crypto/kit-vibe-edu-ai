@@ -572,6 +572,47 @@ Issue #31 교사 대시보드 세션 목록 + 실시간 집계 차트 구현 (IU
 
 ---
 
+### 이슈 #62 — 수업 초안에서 다음 세션 자동 생성
+
+### 사용 도구
+- Claude Code (Claude Sonnet 4.6) — ralplan(Planner/Architect/Critic 합의), executor 구현, simplify 리뷰
+
+### 주요 프롬프트 및 결과
+
+**프롬프트 1**: ralplan으로 구현 계획 수립
+- AI 응답 요약: Planner가 Option A(초안 생성 시 structured_questions 함께 반환) 제안 → Architect가 생명주기 분리 문제 지적 → Critic이 Architect synthesis 채택 권고 → 2-step API 패턴 확정
+- 채택 여부: Architect synthesis 채택 (Option A 기각)
+- 수정 내용: `/api/class-draft/generate` 기존 유지, preview/from-draft 분리
+
+**프롬프트 2**: executor로 전체 구현
+- AI 응답 요약: 5단계 구현 — prompts, preview API, from-draft API, 모달, 호출처 업데이트
+- 채택 여부: 채택
+- 수정 내용: Supabase 타입 never 이슈 → 인라인 타입 어설션으로 해결
+
+**프롬프트 3**: simplify 리뷰 후 개선
+- AI 응답 요약: draft+insights 병렬 조회, AbortController + preview 캐시, 롤백 에러 로그 추가
+- 채택 여부: 채택
+
+### AI 기여 영역
+- `apps/web/src/lib/prompts/draft-questions.ts` — Claude tool use 스키마 + 프롬프트 빌더
+- `apps/web/src/app/api/sessions/from-draft/preview/route.ts` — AI 호출 미리보기 엔드포인트 (병렬 DB 조회)
+- `apps/web/src/app/api/sessions/from-draft/route.ts` — 세션+문항 트랜잭션 삽입, 롤백 처리
+- `apps/web/src/components/dashboard/DraftSessionConfirmModal.tsx` — 미리보기 모달 (캐시, AbortController)
+- `apps/web/src/components/dashboard/ClassDraftPanel.tsx` — 버튼 + 모달 연결
+- `apps/web/src/lib/prompts/insights.ts` — 코드 펜스 제거 처리 추가
+- 충돌 해결 (rebase): SessionDetailClient.tsx
+
+### 인간 주도 영역
+- Architect synthesis 방향 최종 승인
+- 실제 브라우저에서 AI 세션 생성 플로우 검증
+- 최종 커밋·PR 승인
+
+### 오늘의 인사이트
+- 마크다운(교안)과 structured_questions(퀴즈 스키마)는 생성 시점만 같을 뿐 생명주기가 다름 — 한 API에 묶으면 파싱 실패가 UI까지 전파됨
+- Preview(AI 호출, 미리보기) → Confirm(DB만, 원자적 생성) 2-step 패턴이 UX와 신뢰성 모두 확보
+
+---
+
 ## 04/11 (토) AI 활용 로그
 
 ### 사용 도구

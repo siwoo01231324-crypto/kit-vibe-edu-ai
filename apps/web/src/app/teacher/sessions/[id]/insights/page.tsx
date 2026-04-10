@@ -137,7 +137,9 @@ export default function InsightsPage({ params }: Props) {
       )}
 
       {/* 수업 초안 패널 */}
-      {draftContent && <ClassDraftPanel content={draftContent} />}
+      {draftContent && sessionId && (
+        <ClassDraftPanel content={draftContent} sourceSessionId={sessionId} />
+      )}
     </div>
   );
 }
