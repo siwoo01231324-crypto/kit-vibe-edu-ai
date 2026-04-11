@@ -15,6 +15,7 @@ export function DraftSessionConfirmModal({ open, onClose, sourceSessionId, onCre
   const [error, setError] = React.useState<string | null>(null);
   const [preview, setPreview] = React.useState<PreviewResponse | null>(null);
   const [title, setTitle] = React.useState('');
+  const [editableQuestions, setEditableQuestions] = React.useState<QuestionPreview[]>([]);
   const [submitting, setSubmitting] = React.useState(false);
   const cachedIdRef = React.useRef<string | null>(null);
 
@@ -44,6 +45,7 @@ export function DraftSessionConfirmModal({ open, onClose, sourceSessionId, onCre
         cachedIdRef.current = sourceSessionId;
         setPreview(data);
         setTitle(data.title);
+        setEditableQuestions(data.questions);
       })
       .catch((err) => {
         if (err instanceof Error && err.name === 'AbortError') return;
@@ -66,7 +68,7 @@ export function DraftSessionConfirmModal({ open, onClose, sourceSessionId, onCre
         body: JSON.stringify({
           source_session_id: sourceSessionId,
           title,
-          questions: preview.questions,
+          questions: editableQuestions,
         }),
       });
 
@@ -130,34 +132,47 @@ export function DraftSessionConfirmModal({ open, onClose, sourceSessionId, onCre
 
             <div>
               <p className="text-sm font-medium text-slate-700 mb-2">
-                문항 목록 ({preview.questions.length}개)
+                문항 목록 ({editableQuestions.length}개) — 수정 후 세션 생성 가능
               </p>
-              <ol className="space-y-4">
-                {preview.questions.map((q: QuestionPreview, qi: number) => (
-                  <li key={qi} className="rounded-xl border border-slate-200 p-4">
-                    <p className="text-sm font-medium text-slate-900 mb-2">
-                      {qi + 1}. {q.content}
-                    </p>
-                    <ul className="space-y-1">
-                      {q.options.map((opt: string, oi: number) => (
-                        <li
-                          key={oi}
-                          className={`rounded-lg px-3 py-1.5 text-sm ${
-                            oi === q.correct_answer
-                              ? 'bg-green-50 text-green-800 font-medium border border-green-200'
-                              : 'text-slate-600'
-                          }`}
-                        >
-                          {oi + 1}. {opt}
-                          {oi === q.correct_answer && (
-                            <span className="ml-2 text-xs text-green-600">(정답)</span>
-                          )}
-                        </li>
+              <div className="space-y-4">
+                {editableQuestions.map((q, qi) => (
+                  <div key={qi} className="rounded-xl border border-slate-200 p-4 bg-slate-50 space-y-2">
+                    <div>
+                      <label className="block text-xs font-medium text-slate-500 mb-1">Q{qi + 1}. 문항</label>
+                      <textarea
+                        rows={2}
+                        value={q.content}
+                        onChange={(e) => setEditableQuestions((qs) => qs.map((x, i) => i === qi ? { ...x, content: e.target.value } : x))}
+                        className="w-full border border-slate-300 bg-white rounded-lg px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-orange-400 resize-none"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="block text-xs font-medium text-slate-500">선택지 (정답 클릭으로 선택)</label>
+                      {q.options.map((opt, oi) => (
+                        <div key={oi} className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setEditableQuestions((qs) => qs.map((x, i) => i === qi ? { ...x, correct_answer: oi } : x))}
+                            className={`w-6 h-6 rounded-full border-2 flex-shrink-0 transition-colors ${oi === q.correct_answer ? 'border-green-500 bg-green-500' : 'border-slate-300 bg-white hover:border-orange-400'}`}
+                            title="정답으로 설정"
+                          />
+                          <input
+                            type="text"
+                            value={opt}
+                            onChange={(e) => setEditableQuestions((qs) => qs.map((x, i) => {
+                              if (i !== qi) return x;
+                              const newOpts = [...x.options] as [string, string, string, string];
+                              newOpts[oi] = e.target.value;
+                              return { ...x, options: newOpts };
+                            }))}
+                            className={`flex-1 border rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400 ${oi === q.correct_answer ? 'border-green-400 bg-green-50 text-green-800 font-medium' : 'border-slate-300 bg-white text-slate-700'}`}
+                          />
+                        </div>
                       ))}
-                    </ul>
-                  </li>
+                    </div>
+                  </div>
                 ))}
-              </ol>
+              </div>
             </div>
 
             <div className="flex justify-end gap-2 pt-2">

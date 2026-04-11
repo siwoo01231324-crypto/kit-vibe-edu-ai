@@ -86,7 +86,7 @@ export function LiveStatsPanel({ sessionId, questions }: Props) {
                 {/* 문항 헤더 */}
                 <div className="flex items-start justify-between gap-2">
                   <p className="text-sm font-semibold text-slate-800">
-                    <span className="text-slate-400 mr-1">Q{q.question_order}.</span>
+                    <span className="text-slate-400 mr-1">Q{q.question_order + 1}.</span>
                     {q.content}
                   </p>
                   <span className="shrink-0 text-xs text-slate-400 whitespace-nowrap">
