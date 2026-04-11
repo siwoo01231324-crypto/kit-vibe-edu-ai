@@ -1,4 +1,5 @@
 import { notFound, redirect } from 'next/navigation'
+import { headers } from 'next/headers'
 import { createClient } from '@/lib/supabase/server'
 import { LiveSessionClient } from './LiveSessionClient'
 
@@ -33,8 +34,10 @@ export default async function LiveSessionPage({ params }: Props) {
     options: Array.isArray(q.options) ? (q.options as string[]) : [],
   }))
 
-  const base = process.env.NEXT_PUBLIC_BASE_URL ?? ''
-  const joinUrl = `${base}/join/${session.join_code}`
+  const headersList = await headers()
+  const host = headersList.get('host') ?? ''
+  const proto = host.startsWith('localhost') ? 'http' : 'https'
+  const joinUrl = `${proto}://${host}/join/${session.join_code}`
 
   return <LiveSessionClient session={session} joinUrl={joinUrl} questions={questions ?? []} />
 }
