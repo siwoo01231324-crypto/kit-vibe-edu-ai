@@ -779,6 +779,42 @@ Issue #31 교사 대시보드 세션 목록 + 실시간 집계 차트 구현 (IU
 - `key={sessionData.session.id}` props로 세션 전환 시 클라이언트 컴포넌트 강제 remount — React key 활용이 실시간 상태 동기화 문제를 깔끔히 해결
 - dashboard.ts에서 nickname 누락이 participantCount = 0 버그 유발 — 초기 데이터 매핑 완전성이 realtime 훅 동작에 영향
 
+### 이슈 #73 — AI 리포트 양식 작성 (KIT 바이브코딩 공모전 제출용)
+
+**사용 도구**:
+- Claude Code (Claude Opus 4.6, 1M context) — ralplan 컨센서스 플래닝, AI-REPORT.md 전체 작성
+- Claude Haiku 4.5 — 소스 문서 5개 병렬 읽기 (daily-log, project-plan, dev-spec, branding-strategy, AI-REPORT.md)
+- oh-my-claudecode ralplan — Planner → Architect → Critic 합의 워크플로우
+
+**주요 프롬프트 및 결과**:
+
+**프롬프트 1**: `/ri` → 세션 시작, AC 0/6 확인, 01_plan.md 최소 요건 미충족 감지 → `/plan` 자동 호출
+- AI 응답 요약: ralplan 컨센서스 실행 — Planner가 5-step 계획 작성 → Architect가 APPROVE(3건 수정: TODO 수 10→16 보정, AI 기여율 산출 방법론 추가, daily-log 비순차 구조 경고) → Critic이 APPROVE
+- 채택 여부: 채택
+- 수정 내용: Architect/Critic 피드백 3건 모두 반영하여 01_plan.md 최종 저장
+
+**프롬프트 2**: AI-REPORT.md 전체 작성 — 소스 문서 Haiku 병렬 읽기 → Opus 순차 작성
+- AI 응답 요약: 5개 소스 문서(daily-log 1,047줄, project-plan 1,737줄, dev-spec 1,583줄, branding-strategy 556줄, background 4개)를 Haiku 에이전트 5개가 병렬로 읽은 뒤, Opus가 §1~§6 전체 작성
+- 채택 여부: 채택
+- 수정 내용: 커맨드 워크트리 워크플로우(si/ri/fi/ci), Git Project Board 자동 연동, 백그라운드 AI 에이전트 활용 내용 추가 포함 지시
+
+**AI 기여 영역**:
+- ralplan 컨센서스로 구현 계획 수립 (Planner 5-step + Architect 3건 보강 + Critic 승인)
+- AI-REPORT.md 전체 작성 (TODO 17개 → 0개): 도구 목록 8행, 기여 비율 4단계, 프롬프트 원문 5+개, IU별 기여도 테이블, 인간 검토 10건, 버그 수정 3건, 성찰 3개 항목
+- docs/ai-report/.ai.md 최신화
+- 00_issue.md AC 6/6 체크 + 작업 내역 갱신
+
+**인간 주도 영역**:
+- "읽을때는 haiku 구현은 opus로" 모델 라우팅 지시
+- "세세하게 기록하도록" 상세도 수준 결정
+- "커맨드, worktree, git projectboard, 백그라운드 AI 에이전트 활용 내용도 포함" 콘텐츠 방향 지시
+- 최종 검토 및 커밋 승인 예정
+
+**오늘의 인사이트 (#73)**:
+- Haiku 5개 에이전트로 소스 문서 병렬 읽기 → Opus 작성 패턴이 효율적 — 읽기는 저비용 모델, 작성은 고성능 모델로 분리
+- ralplan 합의에서 Architect가 TODO 수 오류(10→16)를 사전 포착 — 작업량 과소추정 방지
+- AI 기여 비율 산출 시 "카운터블 근거 + 추정 라벨" 방식이 팩트 기반 원칙과 정량화 요구를 동시에 충족하는 합리적 절충안
+
 ---
 
 ## 04/12 (일) AI 활용 로그
